@@ -273,7 +273,7 @@ if (!window.Login || !window.Login.__hackos) {
 
       const username = HTMLbuilder.build('input', {
         type: 'text',
-        placeholder: "Nom d'utilisateur",
+        placeholder: "Mail",
       });
 
       // Champ mot de passe avec bouton afficher/masquer
