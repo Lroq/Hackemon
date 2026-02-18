@@ -1,10 +1,12 @@
-const { getUserInfo } = require("../../../server/utils/userTokenManager");
-
 document.addEventListener("DOMContentLoaded", (e) => {
   const apps = document.querySelectorAll(".app");
 
-  if (apps[1].id === "gamehkenginebtn") {
-    apps[1].addEventListener("dblclick", async () => {
+  const hackEngineApp = document.getElementById("gamehkenginebtn");
+  if (hackEngineApp) {
+    hackEngineApp.addEventListener("dblclick", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       // Vérifier le rôle de l'utilisateur
       const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('auth_token');
       
