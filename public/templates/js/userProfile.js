@@ -10,7 +10,8 @@
   async function fetchProfile() {
     try {
       // Vérifier si un token JWT existe avant d'appeler le serveur
-      if (!window.ApiService || !window.ApiService.isAuthenticated()) return null;
+      if (!window.ApiService || !window.ApiService.isAuthenticated())
+        return null;
       const data = await window.ApiService.getProfile();
       return data && (data.user || data);
     } catch (err) {
@@ -25,6 +26,7 @@
       const user = await fetchProfile();
       if (user) {
         this.set(user);
+        window.globalMenuInstance.render();
         return user;
       }
       setDefaultProfile();
@@ -36,7 +38,14 @@
       if (pseudo) pseudo.textContent = user.username || 'Visiteur';
       if (avatar) {
         // Si user.avatar existe, on l'utilise, sinon image par défaut
-        avatar.src = user.avatar || '/public/assets/game_px.png';
+        //avatar.src = user.avatar || '/public/assets/game_px.png';
+        if (user.avatar) {
+          avatar.src = user.avatar;
+        } else if (user.role === 'admin') {
+          avatar.src = '/public/assets/admin_icon.png';
+        } else {
+          avatar.src = '/public/assets/game_px.png';
+        }
       }
     },
   };

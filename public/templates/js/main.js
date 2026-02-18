@@ -322,18 +322,18 @@ if (!window.Login || !window.Login.__hackos) {
 
           if (data && data.success) {
             this.delete(); // Fermer la fenêtre de login d'abord
-            this.loadProfile(); // Charger le profil
+            await this.loadProfile(); // Charger le profil
 
-            if (window.Swal) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Connexion réussie',
-                text: 'Bienvenue sur Hackemon !',
-                confirmButtonColor: '#3085d6',
-                timer: 3000,
-                showConfirmButton: false,
-              });
-            }
+            // if (window.Swal) {
+            //   Swal.fire({
+            //     icon: 'success',
+            //     title: 'Connexion réussie',
+            //     text: 'Bienvenue sur Hackemon !',
+            //     confirmButtonColor: '#3085d6',
+            //     timer: 3000,
+            //     showConfirmButton: false,
+            //   });
+            // }
           } else {
             // Normalize error message
             let errorMessage = '🚨 Erreur de connexion';
@@ -401,14 +401,14 @@ if (!window.Login || !window.Login.__hackos) {
           window.UserProfile.set(user);
         }
         // Changer l'image de profil selon le rôle
-        const avatar = document.getElementById('userAvatar');
-        if (avatar) {
-          if (user.role === 'admin') {
-            avatar.src = '/public/assets/admin_icon.png';
-          } else {
-            avatar.src = '/public/assets/game_px.png';
-          }
-        }
+        // const avatar = document.getElementById('userAvatar');
+        // if (avatar) {
+        //   if (user.role === 'admin') {
+        //     avatar.src = '/public/assets/admin_icon.png';
+        //   } else {
+        //     avatar.src = '/public/assets/game_px.png';
+        //   }
+        // }
 
         // Refresh menu if it exists
         if (window.globalMenuInstance && window.globalMenuInstance.render) {
@@ -498,7 +498,10 @@ if (!window.Register || !window.Register.__hackos) {
                 window.UserProfile.set(user);
               }
             } catch (profileErr) {
-              console.error('Erreur chargement profil après inscription :', profileErr);
+              console.error(
+                'Erreur chargement profil après inscription :',
+                profileErr,
+              );
             }
 
             // Rafraîchir le menu pour afficher le bouton déconnexion
@@ -524,9 +527,7 @@ if (!window.Register || !window.Register.__hackos) {
               if (data.errors.length === 1) {
                 errorMessage = data.errors[0].message;
               } else {
-                errorMessage = data.errors
-                  .map((err) => err.message)
-                  .join('\n');
+                errorMessage = data.errors.map((err) => err.message).join('\n');
               }
             } else if (data && data.message) {
               errorMessage = data.message;
@@ -707,6 +708,9 @@ document.querySelectorAll('.window').forEach((win) => {
 let globalMenuInstance = null;
 
 document.body.onload = () => {
+  if (window.UserProfile && typeof window.UserProfile.refresh === 'function') {
+    window.UserProfile.refresh();
+  }
   // Create the initial Menu instance on page load
   const initialMenu = new Menu();
 
