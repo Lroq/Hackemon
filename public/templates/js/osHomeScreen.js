@@ -1,3 +1,5 @@
+const { getUserInfo } = require("../../../server/utils/userTokenManager");
+
 document.addEventListener("DOMContentLoaded", (e) => {
   const apps = document.querySelectorAll(".app");
 
