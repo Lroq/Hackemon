@@ -49,4 +49,9 @@ router.get("/health", (req, res) => {
   });
 });
 
+// Route du coming soon
+router.get("/coming-soon", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/templates/coming-soon.html"));
+});
+
 module.exports = router;

@@ -116,7 +116,7 @@ class ApiService {
       throw new Error(
         errorData.error ||
           errorData.message ||
-          `Erreur serveur (${response.status})`
+          `Erreur serveur (${response.status})`,
       );
     } catch (parseError) {
       throw new Error(text || `Erreur serveur (${response.status})`);
@@ -169,7 +169,7 @@ class ApiService {
           headers: this.buildHeaders(requireAuth),
           body: JSON.stringify(sanitizedData),
           credentials: 'same-origin', // Envoie les cookies (pour CSRF token)
-        })
+        }),
       );
 
       if (!response.ok) {
@@ -214,7 +214,7 @@ class ApiService {
           method: 'GET',
           headers: this.buildHeaders(requireAuth),
           credentials: 'same-origin',
-        })
+        }),
       );
 
       if (!response.ok) {
@@ -284,7 +284,7 @@ class ApiService {
 
     if (username.length < 3) {
       throw new Error(
-        "Le nom d'utilisateur doit contenir au moins 3 caractères"
+        "Le nom d'utilisateur doit contenir au moins 3 caractères",
       );
     }
 
@@ -305,7 +305,7 @@ class ApiService {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber) {
       throw new Error(
-        'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'
+        'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre',
       );
     }
 
