@@ -1,12 +1,19 @@
 if (window.Login && window.Login.__hackos) {
   // Déjà défini par HackOS: on ignore sans bruit.
 } else {
+  const tr = (key, fallback, vars) => {
+    if (window.I18n && typeof window.I18n.t === 'function') {
+      return window.I18n.t(key, vars, fallback);
+    }
+    return fallback;
+  };
+
   /**
    * Classe Login - Formulaire de connexion sécurisé
    */
   class Login extends Window {
     constructor() {
-      super(20, 50, true, 'Se connecter');
+      super(20, 50, true, tr('login.window_title', 'Se connecter'));
       this.onLoginSuccess = null; // Callback pour le succès de connexion
       this.failedAttempts = 0;
       this.lockoutEndTime = null;
@@ -107,7 +114,7 @@ if (window.Login && window.Login.__hackos) {
   createEmailInput() {
     const emailInput = HTMLBuilder.build('input', {
       type: 'email',
-      placeholder: 'Adresse email',
+      placeholder: tr('login.email_placeholder', 'Mail'),
       required: true,
       autocomplete: 'email',
       style: 'padding: 10px; border: 1px solid #ccc; border-radius: 4px;',
@@ -133,7 +140,7 @@ if (window.Login && window.Login.__hackos) {
 
     const passwordInput = HTMLBuilder.build('input', {
       type: 'password',
-      placeholder: 'Mot de passe',
+      placeholder: tr('login.password_placeholder', 'Mot de passe'),
       required: true,
       autocomplete: 'current-password',
       minLength: 8,
@@ -169,7 +176,7 @@ if (window.Login && window.Login.__hackos) {
   createSubmitButton() {
     return HTMLBuilder.build('input', {
       type: 'submit',
-      value: 'Se connecter',
+      value: tr('login.submit', 'Se connecter'),
       style:
         'padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;',
     });
@@ -182,7 +189,7 @@ if (window.Login && window.Login.__hackos) {
    */
   createSecurityMessage() {
     return HTMLBuilder.build('p', {
-      innerText: '🔒 Connexion sécurisée',
+      innerText: `🔒 ${tr('login.security_msg', 'Connexion securisee')}`,
       style:
         'color: #666; font-size: 0.8em; text-align: center; margin: 10px 0;',
     });
@@ -195,7 +202,7 @@ if (window.Login && window.Login.__hackos) {
    */
   createForgotPasswordLink() {
     const link = HTMLBuilder.build('a', {
-      innerText: 'Mot de passe oublié ?',
+      innerText: tr('login.forgot_password', 'Mot de passe oublie ?'),
       href: '#',
       style:
         'color: #007bff; font-size: 0.9em; text-align: center; text-decoration: none; margin: 5px 0;',
@@ -216,7 +223,7 @@ if (window.Login && window.Login.__hackos) {
    */
   createRegisterButton() {
     const registerButton = HTMLBuilder.build('button', {
-      innerText: "S'inscrire >",
+      innerText: tr('login.register_cta', "S'inscrire >"),
       style:
         'background: none; color: rgb(86, 86, 86); margin-top: 10px; border: none; cursor: pointer; font-size: 0.95em;',
       type: 'button',
@@ -259,20 +266,20 @@ if (window.Login && window.Login.__hackos) {
   validateInputs(email, password, errorMsg) {
     // Vérifier si vide
     if (!email || !password) {
-      this.showError(errorMsg, 'Tous les champs sont requis');
+      this.showError(errorMsg, tr('login.fields_required', 'Tous les champs sont requis'));
       return false;
     }
 
     // Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      this.showError(errorMsg, "Format d'email invalide");
+      this.showError(errorMsg, tr('login.invalid_email', "Format d'email invalide"));
       return false;
     }
 
     // Validation longueur email
     if (email.length > 255) {
-      this.showError(errorMsg, 'Email trop long');
+      this.showError(errorMsg, tr('login.email_too_long', 'Email trop long'));
       return false;
     }
 
@@ -280,20 +287,27 @@ if (window.Login && window.Login.__hackos) {
     if (password.length < 8) {
       this.showError(
         errorMsg,
-        'Le mot de passe doit contenir au moins 8 caractères'
+        tr(
+          'login.password_min',
+          'Le mot de passe doit contenir au moins {min} caracteres',
+          { min: 8 },
+        )
       );
       return false;
     }
 
     if (password.length > 128) {
-      this.showError(errorMsg, 'Mot de passe trop long');
+      this.showError(errorMsg, tr('login.password_too_long', 'Mot de passe trop long'));
       return false;
     }
 
     // Caractères suspects (protection basique injection)
     const dangerousPattern = /[<>\"'`]/;
     if (dangerousPattern.test(email)) {
-      this.showError(errorMsg, "Caractères non autorisés dans l'email");
+      this.showError(
+        errorMsg,
+        tr('login.invalid_chars', "Caracteres non autorises dans l'email"),
+      );
       return false;
     }
 
@@ -316,7 +330,11 @@ if (window.Login && window.Login.__hackos) {
 
       this.showError(
         errorMsg,
-        `🔒 Trop de tentatives échouées. Veuillez réessayer dans ${remainingMinutes} minute(s)`
+        `🔒 ${tr(
+          'login.lockout',
+          'Trop de tentatives echouees. Reessayez dans {minutes} minute(s)',
+          { minutes: remainingMinutes },
+        )}`
       );
 
       submitButton.disabled = true;
@@ -365,7 +383,11 @@ if (window.Login && window.Login.__hackos) {
         if (errorMsg) {
           this.showError(
             errorMsg,
-            `🔒 Trop de tentatives échouées. Veuillez réessayer dans ${remainingMinutes} minute(s)`
+            `🔒 ${tr(
+              'login.lockout',
+              'Trop de tentatives echouees. Reessayez dans {minutes} minute(s)',
+              { minutes: remainingMinutes },
+            )}`
           );
         }
       }
@@ -409,7 +431,7 @@ if (window.Login && window.Login.__hackos) {
 
       // Désactiver le bouton pendant le traitement
       submitButton.disabled = true;
-      submitButton.value = 'Connexion en cours...';
+      submitButton.value = tr('login.loading', 'Connexion en cours...');
       submitButton.style.opacity = '0.7';
 
       // Appel API
@@ -420,7 +442,7 @@ if (window.Login && window.Login.__hackos) {
         this.clearLockout();
 
         // Message de succès
-        this.showSuccess(errorMsg, '✓ Connexion réussie !');
+        this.showSuccess(errorMsg, `✓ ${tr('login.success_message', 'Connexion reussie !')}`);
 
         // Fermer la fenêtre après un court délai
         setTimeout(async () => {
@@ -442,13 +464,13 @@ if (window.Login && window.Login.__hackos) {
       } else {
         this.handleFailedLogin(errorMsg, attemptsIndicator, result.error);
         submitButton.disabled = false;
-        submitButton.value = 'Se connecter';
+        submitButton.value = tr('login.submit', 'Se connecter');
         submitButton.style.opacity = '1';
       }
     } catch (error) {
       this.handleFailedLogin(errorMsg, attemptsIndicator, error.message);
       submitButton.disabled = false;
-      submitButton.value = 'Se connecter';
+      submitButton.value = tr('login.submit', 'Se connecter');
       submitButton.style.opacity = '1';
     }
   }
@@ -468,11 +490,18 @@ if (window.Login && window.Login.__hackos) {
     const remainingAttempts = maxAttempts - this.failedAttempts;
 
     // Message d'erreur générique pour ne pas révéler si l'email existe
-    this.showError(errorMsg, message || 'Email ou mot de passe incorrect');
+    this.showError(
+      errorMsg,
+      message || tr('login.invalid_credentials', 'Email ou mot de passe incorrect'),
+    );
 
     // Afficher l'indicateur de tentatives
     if (this.failedAttempts >= 3 && remainingAttempts > 0) {
-      attemptsIndicator.innerText = `⚠️ ${remainingAttempts} tentative(s) restante(s)`;
+      attemptsIndicator.innerText = `⚠️ ${tr(
+        'login.attempts_remaining',
+        '{count} tentative(s) restante(s)',
+        { count: remainingAttempts },
+      )}`;
       attemptsIndicator.style.display = 'block';
     }
 
@@ -557,7 +586,7 @@ if (window.Login && window.Login.__hackos) {
       return await ApiService.getProfile();
     } catch (error) {
       console.error('Erreur de récupération du profil:', error);
-      return { username: 'Utilisateur' }; // Fallback
+      return { username: tr('login.profile_fallback_user', 'Utilisateur') }; // Fallback
     }
   }
 
@@ -603,7 +632,12 @@ if (window.Login && window.Login.__hackos) {
    */
   openForgotPassword() {
     // À implémenter selon vos besoins
-    alert("Fonctionnalité 'Mot de passe oublié' à venir");
+    alert(
+      tr(
+        'login.forgot_password_coming_soon',
+        "Fonctionnalite 'Mot de passe oublie' a venir",
+      ),
+    );
     // Exemple: new ForgotPassword();
   }
   }

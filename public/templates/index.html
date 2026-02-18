@@ -22,25 +22,25 @@
         <a href="#" style="text-decoration: none">
           <div class="app" id="menubtn">
             <img src="/public/assets/menu_px.png" />
-            <label>Menu.app</label>
+            <label data-i18n="desktop.menu">Menu.app</label>
           </div>
         </a>
         <a href="#" style="text-decoration: none">
           <div class="app" id="gamehkenginebtn">
             <img src="/public/assets/game_px.png" />
-            <label>Game.hkengine</label>
+            <label data-i18n="desktop.game">Game.hkengine</label>
           </div>
         </a>
         <a href="#" style="text-decoration: none">
           <div class="app" id="blognotebtn">
             <img src="/public/assets/blog.png" />
-            <label>Blog notes</label>
+            <label data-i18n="desktop.blog">Blog notes</label>
           </div>
         </a>
         <a href="/" style="text-decoration: none">
           <div class="app" id="discordbtn">
             <img src="/public/assets/discord.png" />
-            <label>Discord</label>
+            <label data-i18n="desktop.discord">Discord</label>
           </div>
         </a>
         <a
@@ -50,7 +50,7 @@
         >
           <div class="app" id="instabtn">
             <img src="/public/assets/insta.png" />
-            <label>Instagram</label>
+            <label data-i18n="desktop.instagram">Instagram</label>
           </div>
         </a>
         <a
@@ -60,7 +60,7 @@
         >
           <div class="app" id="linkedbtn">
             <img src="/public/assets/linkedin.png" />
-            <label>Linkedin</label>
+            <label data-i18n="desktop.linkedin">Linkedin</label>
           </div>
         </a>
         <a
@@ -70,7 +70,13 @@
         >
           <div class="app" id="mailbtn">
             <img src="/public/assets/mail.png" />
-            <label>Mail</label>
+            <label data-i18n="desktop.mail">Mail</label>
+          </div>
+        </a>
+        <a href="#" style="text-decoration: none">
+          <div class="app" id="settingsbtn">
+            <img src="/public/assets/settings.png" />
+            <label data-i18n="desktop.settings">Settings</label>
           </div>
         </a>
       </section>
@@ -84,7 +90,9 @@
             class="user-avatar"
             id="userAvatar"
           />
-          <span class="user-pseudo" id="userPseudo">Visiteur</span>
+          <span class="user-pseudo" id="userPseudo" data-i18n="profile.visitor"
+            >Visiteur</span
+          >
         </div>
       </nav>
     </main>
@@ -93,6 +101,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Chargement de la nouvelle architecture modulaire -->
 
+  <script src="/public/templates/js/i18n.js"></script>
   <script src="/public/templates/js/main.js"></script>
   <script src="/public/templates/js/userProfile.js"></script>
   <script src="/public/templates/js/osHomeScreen.js"></script>

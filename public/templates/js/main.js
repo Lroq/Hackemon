@@ -44,6 +44,13 @@ function ondoubleclick(element, func) {
   };
 }
 
+function tr(key, fallback, vars) {
+  if (window.I18n && typeof window.I18n.t === 'function') {
+    return window.I18n.t(key, vars, fallback);
+  }
+  return fallback;
+}
+
 if (!window.Window || !window.Window.__hackos) {
   class Window {
     static States = {};
@@ -165,7 +172,7 @@ if (!window.Window || !window.Window.__hackos) {
 if (!window.Menu || !window.Menu.__hackos) {
   class Menu extends Window {
     constructor() {
-      super(30, 50, true, 'Menu');
+      super(30, 50, true, tr('menu.window_title', 'Menu'));
       // Store reference to this Menu instance globally so it can be updated
       window.globalMenuInstance = this;
       this.render();
@@ -180,12 +187,14 @@ if (!window.Menu || !window.Menu.__hackos) {
 
       // Add title and description
       const h1 = HTMLbuilder.build('h1', {
-        innerText: 'Bienvenue sur HackOS',
+        innerText: tr('menu.welcome_title', 'Bienvenue sur HackOS'),
         style: 'color: #b2533f;',
       });
       const p = HTMLbuilder.build('p', {
-        innerText:
-          'Apprenez à vous prémunir contre les menaces liées à la cybersécurité!',
+        innerText: tr(
+          'menu.welcome_description',
+          'Apprenez a vous premunir contre les menaces liees a la cybersecurite!',
+        ),
       });
 
       // Check if user is logged in
@@ -194,7 +203,7 @@ if (!window.Menu || !window.Menu.__hackos) {
       if (isLoggedIn) {
         // Show logout button
         const logout = HTMLbuilder.build('button', {
-          innerText: 'Se déconnecter',
+          innerText: tr('menu.logout_cta', 'Se deconnecter'),
           style: 'background: #d9534f; color: white',
         });
         logout.onclick = async () => {
@@ -222,7 +231,7 @@ if (!window.Menu || !window.Menu.__hackos) {
       } else {
         // Show login/register button
         const login = HTMLbuilder.build('button', {
-          innerText: "Se connecter ou s'inscrire",
+          innerText: tr('menu.login_cta', "Se connecter ou s'inscrire"),
           style: 'background: #3e9587; color: white',
         });
         login.onclick = () => {
@@ -265,7 +274,7 @@ if (!window.Menu || !window.Menu.__hackos) {
 if (!window.Login || !window.Login.__hackos) {
   class Login extends Window {
     constructor() {
-      super(25, 20, true, 'Se connecter');
+      super(25, 20, true, tr('login.window_title', 'Se connecter'));
       const form = HTMLbuilder.build('form', {
         style:
           'display:flex; width: 100%; height: 100%; overflow: hidden; flex-direction: column; justify-content: center',
@@ -273,7 +282,7 @@ if (!window.Login || !window.Login.__hackos) {
 
       const username = HTMLbuilder.build('input', {
         type: 'text',
-        placeholder: "Mail",
+        placeholder: tr('login.email_placeholder', 'Mail'),
       });
 
       // Champ mot de passe avec bouton afficher/masquer
@@ -282,7 +291,7 @@ if (!window.Login || !window.Login.__hackos) {
       });
       const password = HTMLbuilder.build('input', {
         type: 'password',
-        placeholder: 'Mot de passe',
+        placeholder: tr('login.password_placeholder', 'Mot de passe'),
         style: 'padding-right: 40px; box-sizing: border-box; width: 100%;',
       });
       const togglePassword = HTMLbuilder.build('button', {
@@ -301,7 +310,7 @@ if (!window.Login || !window.Login.__hackos) {
       passwordContainer.append(password, togglePassword);
       const submit = HTMLbuilder.build('input', {
         type: 'submit',
-        value: 'Se connecter',
+        value: tr('login.submit', 'Se connecter'),
       });
 
       const errorMsg = HTMLbuilder.build('p', {
@@ -336,7 +345,7 @@ if (!window.Login || !window.Login.__hackos) {
             // }
           } else {
             // Normalize error message
-            let errorMessage = '🚨 Erreur de connexion';
+            let errorMessage = tr('login.error_generic', 'Erreur de connexion');
             if (data) {
               if (data.errors && Array.isArray(data.errors))
                 errorMessage = data.errors[0].message;
@@ -350,7 +359,8 @@ if (!window.Login || !window.Login.__hackos) {
         } catch (err) {
           console.error('Erreur lors de la connexion :', err);
           errorMsg.innerText =
-            err.message || '🌐 Impossible de contacter le serveur';
+            err.message ||
+            tr('login.server_unreachable', 'Impossible de contacter le serveur');
           errorMsg.className = 'error-message';
           errorMsg.style.display = 'block';
         }
@@ -358,7 +368,7 @@ if (!window.Login || !window.Login.__hackos) {
 
       // Création du bouton "S'inscrire"
       const registerButton = HTMLbuilder.build('button', {
-        innerText: "S'inscrire >",
+        innerText: tr('login.register_cta', "S'inscrire >"),
         style:
           'background: none; color: white; margin-top: 10px; filter : none; height: 2vw; color: rgb(86, 86, 86);',
       });
@@ -387,13 +397,19 @@ if (!window.Login || !window.Login.__hackos) {
         if (window.Swal) {
           Swal.fire({
             icon: 'success',
-            title: `Bienvenue, ${user.username} !`,
+            title: tr('login.success_title', 'Bienvenue, {username} !', {
+              username: user.username,
+            }),
             confirmButtonColor: '#3085d6',
             timer: 3000,
             showConfirmButton: false,
           });
         } else {
-          alert(`Bienvenue, ${user.username} !`);
+          alert(
+            tr('login.success_title', 'Bienvenue, {username} !', {
+              username: user.username,
+            }),
+          );
         }
 
         // Update user profile in nav
@@ -427,7 +443,7 @@ if (!window.Login || !window.Login.__hackos) {
 if (!window.Register || !window.Register.__hackos) {
   class Register extends Window {
     constructor() {
-      super(30, 20, true, "S'inscrire");
+      super(30, 20, true, tr('register.window_title', "S'inscrire"));
       const form = HTMLbuilder.build('form', {
         style:
           'display:flex; width: 100%; height: 100%; overflow: hidden; flex-direction: column; justify-content: center',
@@ -435,11 +451,11 @@ if (!window.Register || !window.Register.__hackos) {
 
       const mail = HTMLbuilder.build('input', {
         type: 'text',
-        placeholder: 'Mail',
+        placeholder: tr('register.email_placeholder', 'Mail'),
       });
       const username = HTMLbuilder.build('input', {
         type: 'text',
-        placeholder: "Nom d'utilisateur",
+        placeholder: tr('register.username_placeholder', "Nom d'utilisateur"),
       });
 
       // Champ mot de passe avec bouton afficher/masquer
@@ -448,7 +464,7 @@ if (!window.Register || !window.Register.__hackos) {
       });
       const password = HTMLbuilder.build('input', {
         type: 'password',
-        placeholder: 'Mot de passe',
+        placeholder: tr('register.password_placeholder', 'Mot de passe'),
         style: 'padding-right: 40px; box-sizing: border-box; width: 100%;',
       });
       const togglePassword = HTMLbuilder.build('button', {
@@ -467,7 +483,7 @@ if (!window.Register || !window.Register.__hackos) {
       passwordContainer.append(password, togglePassword);
       const submit = HTMLbuilder.build('input', {
         type: 'submit',
-        value: "S'inscrire",
+        value: tr('register.submit', "S'inscrire"),
       });
 
       const errorMsg = HTMLbuilder.build('p', {
@@ -512,8 +528,8 @@ if (!window.Register || !window.Register.__hackos) {
             if (window.Swal) {
               Swal.fire({
                 icon: 'success',
-                title: 'Inscription réussie',
-                text: 'Bienvenue sur Hackemon !',
+                title: tr('register.success_title', 'Inscription reussie'),
+                text: tr('register.success_text', 'Bienvenue sur Hackemon !'),
                 confirmButtonColor: '#3085d6',
                 timer: 3000,
                 showConfirmButton: false,
@@ -521,7 +537,7 @@ if (!window.Register || !window.Register.__hackos) {
             }
           } else {
             // Gestion des erreurs retournées par le serveur
-            let errorMessage = "🚨 Erreur d'inscription";
+            let errorMessage = tr('register.error_generic', "Erreur d'inscription");
 
             if (data && data.errors && Array.isArray(data.errors)) {
               if (data.errors.length === 1) {
@@ -542,14 +558,15 @@ if (!window.Register || !window.Register.__hackos) {
         } catch (err) {
           console.error("Erreur lors de l'inscription :", err);
           errorMsg.innerText =
-            err.message || '🌐 Impossible de contacter le serveur';
+            err.message ||
+            tr('register.server_unreachable', 'Impossible de contacter le serveur');
           errorMsg.className = 'error-message';
           errorMsg.style.display = 'block';
         }
       };
 
       const loginButton = HTMLbuilder.build('button', {
-        innerText: '< Retour',
+        innerText: tr('register.back', '< Retour'),
         style:
           'color:rgb(86, 86, 86); margin-top: 5px; background:none; filter: none; height:2vw;',
       });
@@ -711,6 +728,11 @@ document.body.onload = () => {
   if (window.UserProfile && typeof window.UserProfile.refresh === 'function') {
     window.UserProfile.refresh();
   }
+  window.addEventListener('i18n:changed', () => {
+    if (window.globalMenuInstance && window.globalMenuInstance.render) {
+      window.globalMenuInstance.render();
+    }
+  });
   // Create the initial Menu instance on page load
   const initialMenu = new Menu();
 
