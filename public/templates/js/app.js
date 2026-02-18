@@ -16,6 +16,7 @@ const AppConfig = {
     components: [
       '/public/templates/js/components/Window.js',
       '/public/templates/js/components/Menu.js',
+      '/public/templates/js/components/Settings.js',
       '/public/templates/js/components/Login.js',
       '/public/templates/js/components/Register.js',
       '/public/templates/js/components/LoadingBar.js',
@@ -29,6 +30,13 @@ const AppConfig = {
     enableDragAndDrop: true,
     enableLogging: false,
   },
+};
+
+const trApp = (key, fallback, vars = null) => {
+  if (window.I18n && typeof window.I18n.t === 'function') {
+    return window.I18n.t(key, vars, fallback);
+  }
+  return fallback;
 };
 
 /**
@@ -185,7 +193,7 @@ class AppInitializer {
                 font-size: 24px;
             ">
                 <div style="text-align: center;">
-                    <div>🔧 Chargement de HackOS...</div>
+                    <div>🔧 ${trApp('app.loading', 'Chargement de HackOS...')}</div>
                     <div style="margin-top: 20px;">
                         <div style="width: 200px; height: 10px; background: #333; border: 1px solid #666;">
                             <div id="loading-progress" style="width: 0%; height: 100%; background: #0f0; transition: width 0.3s;"></div>
@@ -250,8 +258,11 @@ class AppInitializer {
                 font-size: 18px;
             ">
                 <div style="text-align: center; max-width: 600px; padding: 20px;">
-                    <h2>❌ Erreur de chargement</h2>
-                    <p>Une erreur est survenue lors du chargement de HackOS:</p>
+                    <h2>❌ ${trApp('app.error_title', 'Erreur de chargement')}</h2>
+                    <p>${trApp(
+                      'app.error_description',
+                      'Une erreur est survenue lors du chargement de HackOS :',
+                    )}</p>
                     <pre id="hackos-error-message" style="background: rgba(0,0,0,0.5); padding: 10px; margin: 20px 0;"></pre>
                     <button id="hackos-reload-btn" style="
                         background: #0f0;
@@ -261,7 +272,7 @@ class AppInitializer {
                         font-family: 'VT323', monospace;
                         font-size: 16px;
                         cursor: pointer;
-                    ">Recharger la page</button>
+                    ">${trApp('app.reload', 'Recharger la page')}</button>
                 </div>
             </div>
         `;
