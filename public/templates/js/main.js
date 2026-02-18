@@ -201,9 +201,10 @@ if (!window.Menu || !window.Menu.__hackos) {
           try {
             // Use ApiService to logout (clears token)
             await window.ApiService.logout();
-            // Reset user pseudo in nav
-            const userPseudo = document.querySelector('#userPseudo');
-            if (userPseudo) userPseudo.innerText = 'Visiteur';
+            // Reset user profile in nav (remet "Visiteur" + avatar par défaut)
+            if (window.UserProfile) {
+              await window.UserProfile.refresh();
+            }
             // Refresh menu to show login button again
             if (window.globalMenuInstance && window.globalMenuInstance.render) {
               window.globalMenuInstance.render();
@@ -253,8 +254,7 @@ if (!window.Menu || !window.Menu.__hackos) {
 
     _isUserLoggedIn() {
       // Check if user pseudo is displayed in nav (user is logged in)
-      const userPseudo = document.querySelector('#userPseudo');
-      return userPseudo && userPseudo.innerText !== 'Visiteur';
+      return window.ApiService && window.ApiService.isAuthenticated();
     }
   }
 
@@ -322,18 +322,18 @@ if (!window.Login || !window.Login.__hackos) {
 
           if (data && data.success) {
             this.delete(); // Fermer la fenêtre de login d'abord
-            this.loadProfile(); // Charger le profil
+            await this.loadProfile(); // Charger le profil
 
-            if (window.Swal) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Connexion réussie',
-                text: 'Bienvenue sur Hackemon !',
-                confirmButtonColor: '#3085d6',
-                timer: 3000,
-                showConfirmButton: false,
-              });
-            }
+            // if (window.Swal) {
+            //   Swal.fire({
+            //     icon: 'success',
+            //     title: 'Connexion réussie',
+            //     text: 'Bienvenue sur Hackemon !',
+            //     confirmButtonColor: '#3085d6',
+            //     timer: 3000,
+            //     showConfirmButton: false,
+            //   });
+            // }
           } else {
             // Normalize error message
             let errorMessage = '🚨 Erreur de connexion';
@@ -401,14 +401,14 @@ if (!window.Login || !window.Login.__hackos) {
           window.UserProfile.set(user);
         }
         // Changer l'image de profil selon le rôle
-        const avatar = document.getElementById('userAvatar');
-        if (avatar) {
-          if (user.role === 'admin') {
-            avatar.src = '/public/assets/admin_icon.png';
-          } else {
-            avatar.src = '/public/assets/game_px.png';
-          }
-        }
+        // const avatar = document.getElementById('userAvatar');
+        // if (avatar) {
+        //   if (user.role === 'admin') {
+        //     avatar.src = '/public/assets/admin_icon.png';
+        //   } else {
+        //     avatar.src = '/public/assets/game_px.png';
+        //   }
+        // }
 
         // Refresh menu if it exists
         if (window.globalMenuInstance && window.globalMenuInstance.render) {
@@ -480,57 +480,35 @@ if (!window.Register || !window.Register.__hackos) {
         errorMsg.style.display = 'none';
 
         try {
-          const response = await fetch('/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: mail.value,
-              username: username.value,
-              password: password.value,
-            }),
-          });
+          // Utilise ApiService pour stocker le token automatiquement
+          const data = await window.ApiService.register(
+            mail.value,
+            username.value,
+            password.value,
+          );
 
-          // Gestion améliorée des réponses d'erreur
-          if (!response.ok) {
-            const text = await response.text();
-            let errorMessage = "🚨 Erreur d'inscription";
+          if (data && data.success) {
+            this.delete();
 
+            // Auto-login : charger le profil et mettre à jour l'UI
             try {
-              const errorData = JSON.parse(text);
-
-              // Nouvelle structure d'erreur avec validation
-              if (errorData.errors && Array.isArray(errorData.errors)) {
-                // Afficher toutes les erreurs ou juste la première selon la préférence
-                if (errorData.errors.length === 1) {
-                  errorMessage = errorData.errors[0].message;
-                } else {
-                  // Afficher plusieurs erreurs de manière propre
-                  errorMessage = errorData.errors
-                    .map((err) => err.message)
-                    .join('\n');
-                }
-              } else if (errorData.message) {
-                // Message d'erreur simple
-                errorMessage = errorData.message;
-              } else if (errorData.error) {
-                // Ancien format d'erreur
-                errorMessage = errorData.error;
+              const profileData = await window.ApiService.getProfile();
+              const user = profileData.user || profileData;
+              if (window.UserProfile) {
+                window.UserProfile.set(user);
               }
-            } catch {
-              // Si ce n'est pas du JSON, utiliser le texte brut
-              errorMessage = text || `🔌 Erreur serveur (${response.status})`;
+            } catch (profileErr) {
+              console.error(
+                'Erreur chargement profil après inscription :',
+                profileErr,
+              );
             }
 
-            errorMsg.innerText = errorMessage;
-            errorMsg.className = 'error-message';
-            errorMsg.style.display = 'block';
-            return;
-          }
+            // Rafraîchir le menu pour afficher le bouton déconnexion
+            if (window.globalMenuInstance && window.globalMenuInstance.render) {
+              window.globalMenuInstance.render();
+            }
 
-          // Si response OK, analyser les données
-          const data = await response.json();
-          if (data.success) {
-            this.delete();
             if (window.Swal) {
               Swal.fire({
                 icon: 'success',
@@ -541,24 +519,20 @@ if (!window.Register || !window.Register.__hackos) {
                 showConfirmButton: false,
               });
             }
-            // Optionnel : ouvrir automatiquement la fenêtre de connexion
-            new Login();
           } else {
-            // Fallback pour d'autres formats d'erreur
+            // Gestion des erreurs retournées par le serveur
             let errorMessage = "🚨 Erreur d'inscription";
 
-            if (data.errors && Array.isArray(data.errors)) {
+            if (data && data.errors && Array.isArray(data.errors)) {
               if (data.errors.length === 1) {
                 errorMessage = data.errors[0].message;
               } else {
                 errorMessage = data.errors.map((err) => err.message).join('\n');
               }
-            } else if (data.message) {
+            } else if (data && data.message) {
               errorMessage = data.message;
-            } else if (data.error) {
+            } else if (data && data.error) {
               errorMessage = data.error;
-            } else {
-              errorMessage = "🤔 Une erreur inattendue s'est produite";
             }
 
             errorMsg.innerText = errorMessage;
@@ -567,7 +541,8 @@ if (!window.Register || !window.Register.__hackos) {
           }
         } catch (err) {
           console.error("Erreur lors de l'inscription :", err);
-          errorMsg.innerText = '🌐 Impossible de contacter le serveur';
+          errorMsg.innerText =
+            err.message || '🌐 Impossible de contacter le serveur';
           errorMsg.className = 'error-message';
           errorMsg.style.display = 'block';
         }
@@ -733,6 +708,9 @@ document.querySelectorAll('.window').forEach((win) => {
 let globalMenuInstance = null;
 
 document.body.onload = () => {
+  if (window.UserProfile && typeof window.UserProfile.refresh === 'function') {
+    window.UserProfile.refresh();
+  }
   // Create the initial Menu instance on page load
   const initialMenu = new Menu();
 
