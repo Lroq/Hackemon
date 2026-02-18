@@ -9,9 +9,9 @@
 
   async function fetchProfile() {
     try {
-      const res = await fetch('/profile', { credentials: 'same-origin' });
-      if (!res.ok) return null;
-      const data = await res.json();
+      // Vérifier si un token JWT existe avant d'appeler le serveur
+      if (!window.ApiService || !window.ApiService.isAuthenticated()) return null;
+      const data = await window.ApiService.getProfile();
       return data && (data.user || data);
     } catch (err) {
       console.error('Erreur récupération profil:', err);
