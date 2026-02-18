@@ -106,7 +106,8 @@ main {
     }
 
     button,
-    input {
+    input,
+    select {
       pointer-events: all;
       cursor: pointer;
       border: none;
@@ -114,6 +115,11 @@ main {
       font-size: 1.5vw;
       margin-top: 0.2vw;
       filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.36));
+    }
+
+    option {
+      color: black;
+      background: #f4f4f4;
     }
 
     h1 {
