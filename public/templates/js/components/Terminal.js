@@ -885,7 +885,30 @@ if (window.Terminal && window.Terminal.__hackos) {
           className: 'is-dim',
           text: tr(
             'terminal.help_output',
-            'Commandes disponibles : help, restaure <app>',
+            'Commandes disponibles : help, whoami, lang, restaure <app>',
+          ),
+        });
+      } else if (normalizedCommand === 'whoami') {
+        this.historyEntries.push({
+          className: 'is-dim',
+          text: tr(
+            'terminal.whoami_output',
+            'Session active : {username}.',
+            { username: this.getPromptUser() },
+          ),
+        });
+      } else if (normalizedCommand === 'lang') {
+        const language =
+          window.I18n && typeof window.I18n.getLanguage === 'function'
+            ? window.I18n.getLanguage()
+            : 'fr';
+
+        this.historyEntries.push({
+          className: 'is-dim',
+          text: tr(
+            'terminal.lang_output',
+            'Langue active : {language}',
+            { language },
           ),
         });
       } else if (

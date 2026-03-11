@@ -95,8 +95,9 @@ if (window.I18n && window.I18n.__hackos) {
       'terminal.prompt_user': 'visiteur@hackemon',
       'terminal.prompt_path': '~/bureau',
       'terminal.prompt_command': 'help',
-      'terminal.help_output': 'Commandes disponibles : help, restaure <app>',
-      'terminal.whoami_output': 'Session visiteur active.',
+      'terminal.help_output':
+        'Commandes disponibles : help, whoami, lang, restaure <app>',
+      'terminal.whoami_output': 'Session active : {username}.',
       'terminal.lang_output': 'Langue active : {language}',
       'terminal.command_not_found': "Cette commande n'existe pas.",
       'terminal.restore_usage': "Utilisation : restaure <nom de l'appli>.",
@@ -196,8 +197,9 @@ if (window.I18n && window.I18n.__hackos) {
       'terminal.prompt_user': 'visitor@hackemon',
       'terminal.prompt_path': '~/desktop',
       'terminal.prompt_command': 'help',
-      'terminal.help_output': 'Available commands: help, restore <app>',
-      'terminal.whoami_output': 'Visitor session is active.',
+      'terminal.help_output':
+        'Available commands: help, whoami, lang, restore <app>',
+      'terminal.whoami_output': 'Active session: {username}.',
       'terminal.lang_output': 'Active language: {language}',
       'terminal.command_not_found': 'This command does not exist.',
       'terminal.restore_usage': 'Usage: restore <app name>.',
