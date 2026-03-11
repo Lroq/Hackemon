@@ -36,7 +36,7 @@ jobs:
         with:
           context: . 
           file: ./dockerfile.site
-          push: false # push à "false" : on teste juste que ça valide le build
+          push: false
           tags: hackemon-site:test
 
       # conteneur de jeu
@@ -45,7 +45,7 @@ jobs:
         with:
           context: . 
           file: ./dockerfile.jeu
-          push: false # push à "false" : on teste juste que ça valide le build
+          push: false
           tags: hackemon-jeu:test
 
   build:
@@ -70,7 +70,7 @@ jobs:
           context: . 
           file: ./dockerfile.site
           push: true
-          tags: ghcr.io/${{ github.repository }}/hackemon-site:latest
+          tags: ghcr.io/lroq/hackemon/hackemon-site:latest
 
       # conteneur de jeu
       - name: Build et Push de l'image Docker (Jeu)
@@ -79,16 +79,15 @@ jobs:
           context: . 
           file: ./dockerfile.jeu
           push: true
-          tags: ghcr.io/${{ github.repository }}/hackemon-jeu:latest
+          tags: ghcr.io/lroq/hackemon/hackemon-jeu:latest
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     
     steps:
-      # Étape de déploiement (généralement on se connecte en SSH au serveur pour pull et relancer docker-compose)
       - name: Déploiement sur le serveur
         run: |
           echo "Ici viendra la commande pour déployer sur le serveur !"
           echo "Exemple :"
-          echo "ssh user@vps 'docker pull ghcr.io/${{ github.repository }}/hackemon-site:latest && docker-compose up -d'"
+          echo "ssh user@vps 'docker pull ghcr.io/lroq/hackemon/hackemon-site:latest && docker-compose up -d'"
