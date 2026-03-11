@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Hackemon
 
 on:
   push:
@@ -25,72 +25,4 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
-  test-docker:
-    needs: ci
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-          
-      # conteneur de site
-      - name: Test du Build Docker (Site)
-        uses: docker/build-push-action@v5
-        with:
-          context: . 
-          file: ./dockerfile.site
-          push: false
-          tags: hackemon-site:test
 
-      # conteneur de jeu
-      - name: Test du Build Docker (Jeu)
-        uses: docker/build-push-action@v5
-        with:
-          context: . 
-          file: ./dockerfile.jeu
-          push: false
-          tags: hackemon-jeu:test
-
-  build:
-    needs: test-docker
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-        
-      - name: Connexion au GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          
-      # conteneur de site
-      - name: Build et Push de l'image Docker (Site)
-        uses: docker/build-push-action@v5
-        with:
-          context: . 
-          file: ./dockerfile.site
-          push: false # Passé à "false" temporairement pour ne rien pousser mais valider l'étape
-          tags: ghcr.io/lroq/hackemon/hackemon-site:latest
-
-      # conteneur de jeu
-      - name: Build et Push de l'image Docker (Jeu)
-        uses: docker/build-push-action@v5
-        with:
-          context: . 
-          file: ./dockerfile.jeu
-          push: false # Passé à "false" temporairement pour ne rien pousser mais valider l'étape
-          tags: ghcr.io/lroq/hackemon/hackemon-jeu:latest
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Déploiement sur le serveur
-        run: |
-          echo "Ici viendra la commande pour déployer sur le serveur !"
-          echo "Exemple :"
-          echo "ssh user@vps 'docker pull ghcr.io/lroq/hackemon/hackemon-site:latest && docker-compose up -d'"

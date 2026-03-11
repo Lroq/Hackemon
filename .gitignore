@@ -11,3 +11,6 @@ coverage
 *.bak
 .cache
 *.swp
+docker-compose.yml
+dockerfile.jeu
+dockerfile.site
