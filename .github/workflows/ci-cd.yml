@@ -25,23 +25,21 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
-  deploy:
+  build-remote:
     needs: ci
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' # Déploiement auto seulement sur les branches cibles
-
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
-      - name: Déploiement sur le serveur via SSH
+      - name: Validation du build Docker sur le serveur SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST }}     # L'adresse IP de ton VPS Ynov
-          username: ${{ secrets.SERVER_USER }} # Le nom d'utilisateur SSH (souvent root, admin, ou ton nom)
-          key: ${{ secrets.SERVER_SSH_KEY }}   # La clé privée SSH permettant de s'y connecter
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # 1. Mise à jour du code source (dossier www)
             cd /home/hackemon/www
             git pull
 
-            # 2. Construction et redémarrage des conteneurs
             cd /srv/hackemon
-            docker-compose up --build -d
+            # "build" demande à docker de compiler tes fichiers, mais sans les lancer !
+            docker-compose build
