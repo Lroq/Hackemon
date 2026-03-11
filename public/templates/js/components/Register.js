@@ -1,12 +1,19 @@
 if (window.Register && window.Register.__hackos) {
   // Déjà défini par HackOS: on ignore sans bruit.
 } else {
+  const tr = (key, fallback, vars) => {
+    if (window.I18n && typeof window.I18n.t === 'function') {
+      return window.I18n.t(key, vars, fallback);
+    }
+    return fallback;
+  };
+
   /**
    * Composant pour la fenêtre d'inscription
    */
   class Register extends Window {
     constructor() {
-      super(20, 50, true, "S'inscrire"); // Hauteur, largeur, fermable, titre
+      super(20, 50, true, tr('register.window_title', "S'inscrire")); // Hauteur, largeur, fermable, titre
       this.onLoginSuccess = null; // Callback pour redirection après inscription
       this.expandedHeight = 37; // Hauteur avec texte d'erreur
       this.initializeRegister();
@@ -35,13 +42,13 @@ if (window.Register && window.Register.__hackos) {
     // Champs du formulaire
     const emailInput = HTMLBuilder.build("input", {
       type: "email",
-      placeholder: "Email",
+      placeholder: tr('register.email_placeholder', 'Mail'),
       required: true,
     });
 
     const usernameInput = HTMLBuilder.build("input", {
       type: "text",
-      placeholder: "Nom d'utilisateur",
+      placeholder: tr('register.username_placeholder', "Nom d'utilisateur"),
       required: true,
     });
 
@@ -52,7 +59,7 @@ if (window.Register && window.Register.__hackos) {
 
     const passwordInput = HTMLBuilder.build("input", {
       type: "password",
-      placeholder: "Mot de passe",
+      placeholder: tr('register.password_placeholder', 'Mot de passe'),
       required: true,
       minLength: 12,
       style:
@@ -78,7 +85,7 @@ if (window.Register && window.Register.__hackos) {
 
     const submitButton = HTMLBuilder.build("input", {
       type: "submit",
-      value: "S'inscrire",
+      value: tr('register.submit', "S'inscrire"),
     });
 
     // Message d'erreur
@@ -130,7 +137,7 @@ if (window.Register && window.Register.__hackos) {
    */
   createLoginButton() {
     const loginButton = HTMLBuilder.build("button", {
-      innerText: "< Retour",
+      innerText: tr('register.back', '< Retour'),
       style:
         "color:rgb(86, 86, 86); margin-top: 5px; background:none; filter: none; height:2vw;",
       type: "button",
@@ -167,21 +174,26 @@ if (window.Register && window.Register.__hackos) {
         if (window.Swal) {
           Swal.fire({
             icon: 'success',
-            title: 'Inscription réussie',
-            text: 'Vous pouvez maintenant vous connecter.',
+            title: tr('register.success_title', 'Inscription reussie'),
+            text: tr('register.success_login_prompt', 'Vous pouvez maintenant vous connecter.'),
             confirmButtonColor: '#3085d6'
           });
         } else {
-          alert("Inscription réussie ! Vous pouvez maintenant vous connecter.");
+          alert(
+            tr(
+              'register.success_alert',
+              'Inscription reussie ! Vous pouvez maintenant vous connecter.',
+            ),
+          );
         }
 
         // Ouvrir automatiquement la fenêtre de connexion
         this.openLogin();
       } else {
-        this.showError(errorMsg, result.error || "Erreur d'inscription");
+        this.showError(errorMsg, result.error || tr('register.error_generic', "Erreur d'inscription"));
       }
     } catch (error) {
-      this.showError(errorMsg, error.message || "Erreur serveur");
+      this.showError(errorMsg, error.message || tr('register.server_error', 'Erreur serveur'));
     }
   }
 
@@ -196,20 +208,24 @@ if (window.Register && window.Register.__hackos) {
    */
   validateInputs(email, username, password, errorMsg) {
     if (!email || !username || !password) {
-      this.showError(errorMsg, "Tous les champs sont obligatoires");
+      this.showError(errorMsg, tr('register.fields_required', 'Tous les champs sont obligatoires'));
       return false;
     }
 
     if (password.length < 12) {
       this.showError(
         errorMsg,
-        "Le mot de passe doit contenir au moins 12 caractères"
+        tr(
+          'register.password_min',
+          'Le mot de passe doit contenir au moins {min} caracteres',
+          { min: 12 },
+        )
       );
       return false;
     }
 
     if (!this.isValidEmail(email)) {
-      this.showError(errorMsg, "Format d'email invalide");
+      this.showError(errorMsg, tr('register.invalid_email', "Format d'email invalide"));
       return false;
     }
 
