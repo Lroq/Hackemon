@@ -11,7 +11,3 @@ coverage
 *.bak
 .cache
 *.swp
-package-lock.json
-docker-compose.yml
-dockerfile.jeu
-dockerfile.site
