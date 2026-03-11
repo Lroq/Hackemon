@@ -26,6 +26,10 @@ class EventUtils {
      * @param {NodeList} apps - Liste des applications
      */
     static setupAppDragAndDrop(apps) {
+        if (document.body && document.body.dataset.appDragMode === 'manual') {
+            return;
+        }
+
         apps.forEach(app => {
             app.draggable = true;
 
