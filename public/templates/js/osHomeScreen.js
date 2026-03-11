@@ -602,7 +602,7 @@ async function openHackEngine(event) {
     const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
 
     if (tokenPayload.role === 'admin') {
-      window.location.href = 'http://localhost:3001';
+      window.location.href = 'https://hackemon.fr/build';
       return;
     }
 
