@@ -69,7 +69,7 @@ jobs:
         with:
           context: . 
           file: ./dockerfile.site
-          push: true
+          push: false # Passé à "false" temporairement pour ne rien pousser mais valider l'étape
           tags: ghcr.io/lroq/hackemon/hackemon-site:latest
 
       # conteneur de jeu
@@ -78,7 +78,7 @@ jobs:
         with:
           context: . 
           file: ./dockerfile.jeu
-          push: true
+          push: false # Passé à "false" temporairement pour ne rien pousser mais valider l'étape
           tags: ghcr.io/lroq/hackemon/hackemon-jeu:latest
 
   deploy:
