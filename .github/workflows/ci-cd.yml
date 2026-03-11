@@ -22,8 +22,34 @@ jobs:
       - name: Installation des dépendances
         run: npm ci
 
-  build-and-push:
+  test-docker:
     needs: ci
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+          
+      # conteneur de site
+      - name: Test du Build Docker (Site)
+        uses: docker/build-push-action@v5
+        with:
+          context: . 
+          file: ./dockerfile.site
+          push: false # push à "false" : on teste juste que ça valide le build
+          tags: hackemon-site:test
+
+      # conteneur de jeu
+      - name: Test du Build Docker (Jeu)
+        uses: docker/build-push-action@v5
+        with:
+          context: . 
+          file: ./dockerfile.jeu
+          push: false # push à "false" : on teste juste que ça valide le build
+          tags: hackemon-jeu:test
+
+  build:
+    needs: test-docker
     runs-on: ubuntu-latest
     
     steps:
@@ -54,3 +80,15 @@ jobs:
           file: ./dockerfile.jeu
           push: true
           tags: ghcr.io/${{ github.repository }}/hackemon-jeu:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Étape de déploiement (généralement on se connecte en SSH au serveur pour pull et relancer docker-compose)
+      - name: Déploiement sur le serveur
+        run: |
+          echo "Ici viendra la commande pour déployer sur le serveur !"
+          echo "Exemple :"
+          echo "ssh user@vps 'docker pull ghcr.io/${{ github.repository }}/hackemon-site:latest && docker-compose up -d'"
