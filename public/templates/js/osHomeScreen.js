@@ -42,6 +42,24 @@ document.addEventListener("DOMContentLoaded", (e) => {
     });
   }
 
+  const settingsApp = document.getElementById("settingsbtn");
+  if (settingsApp) {
+    settingsApp.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (window.Settings) {
+        new window.Settings();
+      } else if (window.Window) {
+        const settingsTitle =
+          window.I18n && typeof window.I18n.t === "function"
+            ? window.I18n.t("settings.window_title", null, "Settings")
+            : "Settings";
+        new window.Window(28, 42, true, settingsTitle);
+      }
+    });
+  }
+
   for (const app of apps) {
     let offsetX = 0;
     let offsetY = 0;

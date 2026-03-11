@@ -1,10 +1,20 @@
 // Récupère le profil de l'utilisateur connecté et met à jour l'UI
 (async function () {
+  function getVisitorLabel() {
+    if (window.I18n && typeof window.I18n.t === 'function') {
+      return window.I18n.t('profile.visitor', null, 'Visiteur');
+    }
+    return 'Visiteur';
+  }
+
   function setDefaultProfile() {
     const avatar = document.getElementById('userAvatar');
     const pseudo = document.getElementById('userPseudo');
     if (avatar) avatar.src = '/public/assets/game_px.png';
-    if (pseudo) pseudo.textContent = 'Visiteur';
+    if (pseudo) {
+      pseudo.setAttribute('data-i18n', 'profile.visitor');
+      pseudo.textContent = getVisitorLabel();
+    }
   }
 
   async function fetchProfile() {
@@ -35,7 +45,15 @@
     set(user) {
       const avatar = document.getElementById('userAvatar');
       const pseudo = document.getElementById('userPseudo');
-      if (pseudo) pseudo.textContent = user.username || 'Visiteur';
+      if (pseudo) {
+        if (user.username) {
+          pseudo.removeAttribute('data-i18n');
+          pseudo.textContent = user.username;
+        } else {
+          pseudo.setAttribute('data-i18n', 'profile.visitor');
+          pseudo.textContent = getVisitorLabel();
+        }
+      }
       if (avatar) {
         // Si user.avatar existe, on l'utilise, sinon image par défaut
         //avatar.src = user.avatar || '/public/assets/game_px.png';
@@ -53,6 +71,11 @@
   // Fonction d'initialisation
   function init() {
     window.UserProfile.refresh();
+    window.addEventListener('i18n:changed', () => {
+      if (!window.ApiService || !window.ApiService.isAuthenticated()) {
+        setDefaultProfile();
+      }
+    });
   }
 
   // Attendre que le DOM soit prêt puis initialiser

@@ -1,12 +1,19 @@
 if (window.Menu && window.Menu.__hackos) {
     // Déjà défini par HackOS: on ignore sans bruit.
 } else {
+    const tr = (key, fallback, vars) => {
+        if (window.I18n && typeof window.I18n.t === 'function') {
+            return window.I18n.t(key, vars, fallback);
+        }
+        return fallback;
+    };
+
     /**
      * Composant Menu principal de l'application
      */
     class Menu extends Window {
         constructor() {
-            super(50, 50, true, "Menu");
+            super(50, 50, true, tr('menu.window_title', "Menu"));
             this.initializeMenu();
         }
 
@@ -17,18 +24,18 @@ if (window.Menu && window.Menu.__hackos) {
     initializeMenu() {
         // Titre de bienvenue
         const title = HTMLBuilder.build("h1", {
-            innerText: "Bienvenue sur HackOS",
+            innerText: tr('menu.welcome_title', "Bienvenue sur HackOS"),
             style: "color: #b2533f;"
         });
 
         // Description
         const description = HTMLBuilder.build("p", {
-            innerText: "Apprenez à vous prémunir contre les menaces liées à la cybersécurité!"
+            innerText: tr('menu.welcome_description', "Apprenez a vous premunir contre les menaces liees a la cybersecurite!")
         });
 
         // Bouton de connexion
         const loginButton = HTMLBuilder.build("button", {
-            innerText: "Se connecter ou s'inscrire",
+            innerText: tr('menu.login_cta', "Se connecter ou s'inscrire"),
             style: "background: #3e9587; color: white"
         });
 
@@ -67,11 +74,11 @@ if (window.Menu && window.Menu.__hackos) {
         if (window.Swal) {
             Swal.fire({
                 icon: 'success',
-                title: `Bienvenue, ${pseudo} !`,
+                title: tr('menu.login_success_title', 'Bienvenue, {username} !', { username: pseudo }),
                 confirmButtonColor: '#3085d6'
             });
         } else {
-            alert(`Bienvenue, ${pseudo} !`);
+            alert(tr('menu.login_success_title', 'Bienvenue, {username} !', { username: pseudo }));
         }
         // Ici vous pouvez ajouter d'autres actions post-connexion
     }
