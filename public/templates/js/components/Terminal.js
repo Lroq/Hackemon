@@ -20,6 +20,10 @@ if (window.Terminal && window.Terminal.__hackos) {
       };
       this.commandValue = '';
       this.historyEntries = [];
+      this.commandHistory = [];
+      this.commandHistoryIndex = -1;
+      this.commandHistoryDraft = '';
+      this.isSyncingCommandInput = false;
 
       this.handleMouseMove = this.handleMouseMove.bind(this);
       this.handleMouseUp = this.handleMouseUp.bind(this);
@@ -564,10 +568,33 @@ if (window.Terminal && window.Terminal.__hackos) {
       });
 
       this.commandInput.addEventListener('input', () => {
+        if (this.isSyncingCommandInput) {
+          return;
+        }
+
         this.commandValue = this.commandInput.value;
+
+        if (this.commandHistoryIndex !== -1) {
+          this.commandHistoryIndex = -1;
+          this.commandHistoryDraft = this.commandValue;
+        }
       });
 
       this.commandInput.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          event.stopPropagation();
+          this.navigateCommandHistory(-1);
+          return;
+        }
+
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          event.stopPropagation();
+          this.navigateCommandHistory(1);
+          return;
+        }
+
         if (event.key === 'Enter') {
           event.preventDefault();
           event.stopPropagation();
@@ -650,6 +677,59 @@ if (window.Terminal && window.Terminal.__hackos) {
       }
 
       return tr('terminal.prompt_user', 'visitor@hackemon');
+    }
+
+    getWhoAmIValue() {
+      return this.getPromptUser().replace(/@hackemon$/i, '');
+    }
+
+    setCommandInputValue(value) {
+      this.commandValue = value;
+
+      if (!this.commandInput) {
+        return;
+      }
+
+      this.isSyncingCommandInput = true;
+      this.commandInput.value = value;
+      const valueLength = value.length;
+      this.commandInput.setSelectionRange(valueLength, valueLength);
+      this.isSyncingCommandInput = false;
+    }
+
+    navigateCommandHistory(direction) {
+      if (this.commandHistory.length === 0) {
+        return;
+      }
+
+      if (direction < 0) {
+        if (this.commandHistoryIndex === -1) {
+          this.commandHistoryDraft = this.commandInput?.value || '';
+          this.commandHistoryIndex = this.commandHistory.length - 1;
+        } else if (this.commandHistoryIndex > 0) {
+          this.commandHistoryIndex -= 1;
+        }
+
+        this.setCommandInputValue(
+          this.commandHistory[this.commandHistoryIndex] || '',
+        );
+        return;
+      }
+
+      if (this.commandHistoryIndex === -1) {
+        return;
+      }
+
+      if (this.commandHistoryIndex < this.commandHistory.length - 1) {
+        this.commandHistoryIndex += 1;
+        this.setCommandInputValue(
+          this.commandHistory[this.commandHistoryIndex] || '',
+        );
+        return;
+      }
+
+      this.commandHistoryIndex = -1;
+      this.setCommandInputValue(this.commandHistoryDraft);
     }
 
     getBaseEntries() {
@@ -861,12 +941,13 @@ if (window.Terminal && window.Terminal.__hackos) {
     executeCommand(rawValue) {
       const command = rawValue.trim();
       if (!command) {
-        this.commandValue = '';
-        if (this.commandInput) {
-          this.commandInput.value = '';
-        }
+        this.setCommandInputValue('');
         return;
       }
+
+      this.commandHistory.push(command);
+      this.commandHistoryIndex = -1;
+      this.commandHistoryDraft = '';
 
       this.historyEntries.push({
         className: 'is-accent',
@@ -894,7 +975,7 @@ if (window.Terminal && window.Terminal.__hackos) {
           text: tr(
             'terminal.whoami_output',
             'Session active : {username}.',
-            { username: this.getPromptUser() },
+            { username: this.getWhoAmIValue() },
           ),
         });
       } else if (normalizedCommand === 'lang') {
@@ -926,11 +1007,7 @@ if (window.Terminal && window.Terminal.__hackos) {
         });
       }
 
-      this.commandValue = '';
-
-      if (this.commandInput) {
-        this.commandInput.value = '';
-      }
+      this.setCommandInputValue('');
 
       this.renderLogLines();
       this.focusInput();
