@@ -4,6 +4,7 @@ if (!window.DesktopAppRegistry || !window.DesktopAppRegistry.__hackos) {
       this.apps = new Map();
       this.appsContainer = null;
       this.binId = 'bin';
+      this.protectedDeletedIds = new Set(['terminalbtn']);
       this.isInitialized = false;
     }
 
@@ -169,6 +170,14 @@ if (!window.DesktopAppRegistry || !window.DesktopAppRegistry.__hackos) {
       );
     }
 
+    canBeDeletedPermanently(record) {
+      return Boolean(
+        record &&
+          record.state === 'trash' &&
+          !this.protectedDeletedIds.has(record.id),
+      );
+    }
+
     updateBinIcon() {
       const binRecord = this.apps.get(this.binId);
       if (!binRecord || !binRecord.iconElement) {
@@ -257,8 +266,11 @@ if (!window.DesktopAppRegistry || !window.DesktopAppRegistry.__hackos) {
 
     emptyTrash() {
       const trashItems = this.getTrashItems();
+      const deletableItems = trashItems.filter((record) =>
+        this.canBeDeletedPermanently(record),
+      );
 
-      trashItems.forEach((record) => {
+      deletableItems.forEach((record) => {
         this.closeAssociatedWindows(record);
 
         if (!record.template) {
@@ -282,7 +294,7 @@ if (!window.DesktopAppRegistry || !window.DesktopAppRegistry.__hackos) {
       });
 
       this.notifyChange();
-      return trashItems.length;
+      return deletableItems.length;
     }
 
     closeAssociatedWindows(record) {

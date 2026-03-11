@@ -94,12 +94,15 @@ if (window.I18n && window.I18n.__hackos) {
         'Commandes, historique et saisie pourront etre relies ensuite.',
       'terminal.prompt_user': 'visiteur@hackemon',
       'terminal.prompt_path': '~/bureau',
-      'terminal.prompt_command': 'help --a-venir',
-      'terminal.help_output':
-        'Commandes disponibles : help, clear, whoami, lang',
+      'terminal.prompt_command': 'help',
+      'terminal.help_output': 'Commandes disponibles : help, restaure <app>',
       'terminal.whoami_output': 'Session visiteur active.',
       'terminal.lang_output': 'Langue active : {language}',
       'terminal.command_not_found': "Cette commande n'existe pas.",
+      'terminal.restore_usage': "Utilisation : restaure <nom de l'appli>.",
+      'terminal.restore_success': '{app} a ete restauree sur le bureau.',
+      'terminal.restore_not_found':
+        'Aucune appli supprimee ne correspond a "{app}".',
       'corbeille.window_title': 'Corbeille',
       'corbeille.title': 'Corbeille',
       'corbeille.description':
@@ -192,11 +195,15 @@ if (window.I18n && window.I18n.__hackos) {
         'Commands, history and prompt input can be wired next.',
       'terminal.prompt_user': 'visitor@hackemon',
       'terminal.prompt_path': '~/desktop',
-      'terminal.prompt_command': 'help --coming-soon',
-      'terminal.help_output': 'Available commands: help, clear, whoami, lang',
+      'terminal.prompt_command': 'help',
+      'terminal.help_output': 'Available commands: help, restore <app>',
       'terminal.whoami_output': 'Visitor session is active.',
       'terminal.lang_output': 'Active language: {language}',
       'terminal.command_not_found': 'This command does not exist.',
+      'terminal.restore_usage': 'Usage: restore <app name>.',
+      'terminal.restore_success': '{app} has been restored to the desktop.',
+      'terminal.restore_not_found':
+        'No deleted app matches "{app}".',
       'corbeille.window_title': 'Recycle Bin',
       'corbeille.title': 'Recycle Bin',
       'corbeille.description':

@@ -24,6 +24,7 @@ if (window.Terminal && window.Terminal.__hackos) {
       this.handleMouseMove = this.handleMouseMove.bind(this);
       this.handleMouseUp = this.handleMouseUp.bind(this);
       this.handleLanguageChange = this.handleLanguageChange.bind(this);
+      this.handleUserProfileChange = this.handleUserProfileChange.bind(this);
 
       this.ensureStyles();
       this.element = this.createWindow();
@@ -34,6 +35,10 @@ if (window.Terminal && window.Terminal.__hackos) {
       this.focus();
 
       window.addEventListener('i18n:changed', this.handleLanguageChange);
+      window.addEventListener(
+        'hackos:user-profile-changed',
+        this.handleUserProfileChange,
+      );
       window.__hackosTerminalInstance = this;
     }
 
@@ -552,7 +557,7 @@ if (window.Terminal && window.Terminal.__hackos) {
         className: 'terminal-command-input',
         type: 'text',
         value: this.commandValue,
-        placeholder: tr('terminal.prompt_command', 'help --coming-soon'),
+        placeholder: tr('terminal.prompt_command', 'help'),
         autocomplete: 'off',
         autocapitalize: 'off',
         spellcheck: false,
@@ -576,7 +581,7 @@ if (window.Terminal && window.Terminal.__hackos) {
       this.prompt.replaceChildren(
         HTMLBuilder.build('span', {
           className: 'terminal-user',
-          innerText: tr('terminal.prompt_user', 'visitor@hackemon'),
+          innerText: this.getPromptUser(),
         }),
         HTMLBuilder.build('span', {
           innerText: ':',
@@ -601,6 +606,50 @@ if (window.Terminal && window.Terminal.__hackos) {
 
     handleLanguageChange() {
       this.renderCopy();
+    }
+
+    handleUserProfileChange() {
+      this.renderCopy();
+    }
+
+    getSessionUser() {
+      const appManagerUser =
+        window.AppManager && typeof window.AppManager.getCurrentUser === 'function'
+          ? window.AppManager.getCurrentUser()
+          : null;
+
+      if (appManagerUser?.user) {
+        return appManagerUser.user;
+      }
+
+      if (appManagerUser) {
+        return appManagerUser;
+      }
+
+      return null;
+    }
+
+    getPromptUser() {
+      const sessionUser = this.getSessionUser();
+      const loginName =
+        sessionUser?.username ||
+        sessionUser?.name ||
+        sessionUser?.email?.split('@')[0] ||
+        '';
+
+      if (loginName) {
+        return `${loginName}@hackemon`;
+      }
+
+      const pseudoElement = document.getElementById('userPseudo');
+      if (pseudoElement && !pseudoElement.hasAttribute('data-i18n')) {
+        const pseudo = pseudoElement.textContent?.trim();
+        if (pseudo) {
+          return `${pseudo}@hackemon`;
+        }
+      }
+
+      return tr('terminal.prompt_user', 'visitor@hackemon');
     }
 
     getBaseEntries() {
@@ -667,6 +716,148 @@ if (window.Terminal && window.Terminal.__hackos) {
       });
     }
 
+    normalizeLookupValue(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '');
+    }
+
+    collectRecordAliases(record) {
+      const aliases = new Set();
+
+      const addAlias = (value) => {
+        const normalized = this.normalizeLookupValue(value);
+        if (normalized) {
+          aliases.add(normalized);
+        }
+      };
+
+      const addVariants = (value) => {
+        if (!value) {
+          return;
+        }
+
+        const rawValue = String(value);
+        addAlias(rawValue);
+        addAlias(rawValue.replace(/btn$/i, ''));
+        addAlias(rawValue.replace(/\.[a-z0-9_-]+$/i, ''));
+      };
+
+      addVariants(record?.id);
+      addVariants(record?.name);
+      addVariants(record?.template?.labelText);
+
+      if (
+        window.DesktopAppRegistry &&
+        typeof window.DesktopAppRegistry.getDisplayName === 'function'
+      ) {
+        addVariants(window.DesktopAppRegistry.getDisplayName(record));
+      }
+
+      if (
+        record?.translationKey &&
+        window.I18n &&
+        typeof window.I18n.t === 'function'
+      ) {
+        addVariants(
+          window.I18n.t(
+            record.translationKey,
+            null,
+            record.template?.labelText || record.name || record.id,
+          ),
+        );
+      }
+
+      return aliases;
+    }
+
+    findDeletedApp(rawName) {
+      const registry = window.DesktopAppRegistry;
+      if (!registry || typeof registry.getDeletedItems !== 'function') {
+        return null;
+      }
+
+      const normalizedName = this.normalizeLookupValue(rawName);
+      if (!normalizedName) {
+        return null;
+      }
+
+      return (
+        registry.getDeletedItems().find((record) => {
+          return this.collectRecordAliases(record).has(normalizedName);
+        }) || null
+      );
+    }
+
+    handleRestoreCommand(rawTarget) {
+      const target = rawTarget.trim();
+      if (!target) {
+        this.historyEntries.push({
+          className: 'is-error',
+          text: tr(
+            'terminal.restore_usage',
+            "Utilisation : restaure <nom de l'appli>.",
+          ),
+        });
+        return;
+      }
+
+      const registry = window.DesktopAppRegistry;
+      if (!registry || typeof registry.reinstallApp !== 'function') {
+        this.historyEntries.push({
+          className: 'is-error',
+          text: tr(
+            'terminal.restore_not_found',
+            'Aucune appli supprimee ne correspond a "{app}".',
+            { app: target },
+          ),
+        });
+        return;
+      }
+
+      const record = this.findDeletedApp(target);
+      if (!record) {
+        this.historyEntries.push({
+          className: 'is-error',
+          text: tr(
+            'terminal.restore_not_found',
+            'Aucune appli supprimee ne correspond a "{app}".',
+            { app: target },
+          ),
+        });
+        return;
+      }
+
+      const restoredRecord = registry.reinstallApp(record.id);
+      if (!restoredRecord) {
+        this.historyEntries.push({
+          className: 'is-error',
+          text: tr(
+            'terminal.restore_not_found',
+            'Aucune appli supprimee ne correspond a "{app}".',
+            { app: target },
+          ),
+        });
+        return;
+      }
+
+      this.historyEntries.push({
+        className: 'is-dim',
+        text: tr(
+          'terminal.restore_success',
+          '{app} a ete restauree sur le bureau.',
+          {
+            app:
+              (typeof registry.getDisplayName === 'function' &&
+                registry.getDisplayName(restoredRecord)) ||
+              target,
+          },
+        ),
+      });
+    }
+
     executeCommand(rawValue) {
       const command = rawValue.trim();
       if (!command) {
@@ -682,41 +873,26 @@ if (window.Terminal && window.Terminal.__hackos) {
         text: `> ${command}`,
       });
 
-      const [name, ...args] = command.split(/\s+/);
+      const separatorIndex = command.indexOf(' ');
+      const name =
+        separatorIndex === -1 ? command : command.slice(0, separatorIndex);
+      const argumentText =
+        separatorIndex === -1 ? '' : command.slice(separatorIndex + 1).trim();
       const normalizedCommand = name.toLowerCase();
 
-      if (normalizedCommand === 'clear') {
-        this.historyEntries = [];
-      } else if (normalizedCommand === 'help') {
+      if (normalizedCommand === 'help') {
         this.historyEntries.push({
           className: 'is-dim',
           text: tr(
             'terminal.help_output',
-            'Commandes disponibles : help, clear, whoami, lang',
+            'Commandes disponibles : help, restaure <app>',
           ),
         });
-      } else if (normalizedCommand === 'whoami') {
-        this.historyEntries.push({
-          className: 'is-dim',
-          text: tr(
-            'terminal.whoami_output',
-            'Session visiteur active.',
-          ),
-        });
-      } else if (normalizedCommand === 'lang') {
-        const language =
-          window.I18n && typeof window.I18n.getLanguage === 'function'
-            ? window.I18n.getLanguage()
-            : 'fr';
-
-        this.historyEntries.push({
-          className: 'is-dim',
-          text: tr(
-            'terminal.lang_output',
-            'Langue active : {language}',
-            { language },
-          ),
-        });
+      } else if (
+        normalizedCommand === 'restaure' ||
+        normalizedCommand === 'restore'
+      ) {
+        this.handleRestoreCommand(argumentText);
       } else {
         this.historyEntries.push({
           className: 'is-error',
@@ -774,6 +950,10 @@ if (window.Terminal && window.Terminal.__hackos) {
     delete() {
       this.handleMouseUp();
       window.removeEventListener('i18n:changed', this.handleLanguageChange);
+      window.removeEventListener(
+        'hackos:user-profile-changed',
+        this.handleUserProfileChange,
+      );
 
       if (window.__hackosTerminalInstance === this) {
         window.__hackosTerminalInstance = null;
