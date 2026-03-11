@@ -38,11 +38,10 @@ jobs:
           username: ${{ secrets.SERVER_USER }} # Le nom d'utilisateur SSH (souvent root, admin, ou ton nom)
           key: ${{ secrets.SERVER_SSH_KEY }}   # La clé privée SSH permettant de s'y connecter
           script: |
-            # 1. On se déplace dans le dossier contenant ton code sur le serveur
-            cd /chemin/vers/ton/projet/Hackemon # <-- CHEMIN À CHANGER
-
-            # 2. On récupère les dernières modifications du repo GitHub
+            # 1. Mise à jour du code source (dossier www)
+            cd /home/hackemon/www
             git pull
 
-            # 3. Le docker-compose reconstruira toutes les images des conteneurs qui ont été modifiées !
+            # 2. Construction et redémarrage des conteneurs
+            cd /srv/hackemon
             docker-compose up --build -d
