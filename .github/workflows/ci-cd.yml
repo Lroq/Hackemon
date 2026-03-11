@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main", "feat/docker" ]
+    branches: [ "main", "feat/docker", "feat/CI-CD", "dev" ]
   pull_request:
-    branches: [ "main", "feat/docker" ]
+    branches: [ "main", "feat/docker", "feat/CI-CD", "dev" ]
 
 jobs:
   # 1. Job de Continuous Integration (Vérification du code Node.js)
