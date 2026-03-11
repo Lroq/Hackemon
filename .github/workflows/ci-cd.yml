@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  #verif 
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Installation des dépendances
+        run: npm ci
+
+      # Décommentez cette étape lorsque vous aurez ajouté des tests dans package.json
+      # - name: Lancement des tests
+      #   run: npm test
+
+  # 2. Job de Test Docker (Vérifie que les conteneurs buildent bien sans les pousser)
+  # Ce job s'exécutera uniquement si le job "ci" réussit
+  test-docker:
+    needs: ci
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+          
+      # conteneur de site
+      - name: Test du Build Docker (Site)
+        uses: docker/build-push-action@v5
+        with:
+          # Définir ici le dossier racine du site si différent, ou `.` si à la racine
+          context: . 
+          # docker site
+          file: ./Dockerfile_Site # <- A modifier par le vrai nom
+          push: false # push à "false" : on teste juste que ça valide le build
+          # image "-site"
+          tags: hackemon-site:test
+
+      # conteneur de jeu
+      - name: Test du Build Docker (Jeu)
+        uses: docker/build-push-action@v5
+        with:
+          # Définir ici le dossier racine du jeu si différent, ou `.` si à la racine
+          context: . 
+          # docker jeu
+          file: ./Dockerfile_Jeu # <- A modifier par le vrai nom
+          push: false # push à "false" : on teste juste que ça valide le build
+          # On tague l'image avec "-jeu"
+          tags: hackemon-jeu:test
