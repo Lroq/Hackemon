@@ -26,9 +26,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
         console.log('Rôle détecté:', tokenPayload.role);
         
         if (tokenPayload.role === 'admin') {
-          // Admin : redirection vers 3001
-          console.log('Admin détecté - Redirection vers 3001');
-          window.location.href = "http://localhost:3001";
+          // Admin: redirection vers /build
+          console.log('Admin détecté - Redirection vers /build');
+          window.location.href = "/build";
         } else {
           // User : Coming soon
           console.log('User détecté - Redirection vers coming-soon');
