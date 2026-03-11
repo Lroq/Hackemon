@@ -160,6 +160,11 @@ main {
       background: rgba(251, 251, 251, 0.3);
       border: 0.1vw solid #ffffff;
     }
+
+    &.bin-drop-target {
+      background: rgba(255, 255, 255, 0.45);
+      border: 0.1vw dashed #ffffff;
+    }
   }
 
   img {

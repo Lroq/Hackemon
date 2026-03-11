@@ -19,6 +19,7 @@ if (window.I18n && window.I18n.__hackos) {
       'desktop.instagram': 'Instagram',
       'desktop.linkedin': 'LinkedIn',
       'desktop.mail': 'Courriel',
+      'desktop.bin': 'Corbeille',
       'desktop.settings': 'Parametres',
       'profile.visitor': 'Visiteur',
       'menu.window_title': 'Menu',
@@ -77,6 +78,15 @@ if (window.I18n && window.I18n.__hackos) {
       'settings.language_label': 'Langue',
       'settings.option_fr': 'Francais',
       'settings.option_en': 'English',
+      'corbeille.window_title': 'Corbeille',
+      'corbeille.title': 'Corbeille',
+      'corbeille.description':
+        'Glisse une appli sur la corbeille pour la masquer du bureau.',
+      'corbeille.empty': 'La corbeille est vide.',
+      'corbeille.count': '{count} appli(s) dans la corbeille',
+      'corbeille.restore': 'Restaurer',
+      'corbeille.empty_bin': 'Vider la corbeille',
+      'corbeille.app_id': 'ID : {id}',
     },
     en: {
       'app.loading': 'Loading HackOS...',
@@ -90,6 +100,7 @@ if (window.I18n && window.I18n.__hackos) {
       'desktop.instagram': 'Instagram',
       'desktop.linkedin': 'LinkedIn',
       'desktop.mail': 'Email',
+      'desktop.bin': 'Bin',
       'desktop.settings': 'Settings',
       'profile.visitor': 'Visitor',
       'menu.window_title': 'Menu',
@@ -145,6 +156,15 @@ if (window.I18n && window.I18n.__hackos) {
       'settings.language_label': 'Language',
       'settings.option_fr': 'Francais',
       'settings.option_en': 'English',
+      'corbeille.window_title': 'Recycle Bin',
+      'corbeille.title': 'Recycle Bin',
+      'corbeille.description':
+        'Drag an app onto the bin to hide it from the desktop.',
+      'corbeille.empty': 'The recycle bin is empty.',
+      'corbeille.count': '{count} app(s) in the recycle bin',
+      'corbeille.restore': 'Restore',
+      'corbeille.empty_bin': 'Empty recycle bin',
+      'corbeille.app_id': 'ID: {id}',
     },
   };
 

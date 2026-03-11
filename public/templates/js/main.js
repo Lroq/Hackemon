@@ -637,32 +637,37 @@ if (!window.LoadingBar || !window.LoadingBar.__hackos) {
 }
 
 // drag and drop
-document.querySelectorAll('.apps .app').forEach((app) => {
-  app.draggable = true;
+const shouldEnableNativeAppDnD =
+  document.body?.dataset.appDragMode !== 'manual';
 
-  app.addEventListener('dragstart', (e) => {
-    app.classList.add('dragging');
-    e.dataTransfer.setData('text/plain', null);
+if (shouldEnableNativeAppDnD) {
+  document.querySelectorAll('.apps .app').forEach((app) => {
+    app.draggable = true;
+
+    app.addEventListener('dragstart', (e) => {
+      app.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', null);
+    });
+
+    app.addEventListener('dragend', () => {
+      app.classList.remove('dragging');
+    });
   });
 
-  app.addEventListener('dragend', () => {
-    app.classList.remove('dragging');
-  });
-});
+  const appsContainer = document.querySelector('.apps');
 
-const appsContainer = document.querySelector('.apps');
-
-if (appsContainer) {
-  appsContainer.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    const dragging = document.querySelector('.dragging');
-    const afterElement = getDragAfterElement(appsContainer, e.clientX);
-    if (afterElement == null) {
-      appsContainer.appendChild(dragging);
-    } else {
-      appsContainer.insertBefore(dragging, afterElement);
-    }
-  });
+  if (appsContainer) {
+    appsContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const dragging = document.querySelector('.dragging');
+      const afterElement = getDragAfterElement(appsContainer, e.clientX);
+      if (afterElement == null) {
+        appsContainer.appendChild(dragging);
+      } else {
+        appsContainer.insertBefore(dragging, afterElement);
+      }
+    });
+  }
 }
 
 function getDragAfterElement(container, x) {
