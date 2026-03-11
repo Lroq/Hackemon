@@ -1,6 +1,47 @@
 document.addEventListener("DOMContentLoaded", (e) => {
   const apps = document.querySelectorAll(".app");
 
+  const hackEngineApp = document.getElementById("gamehkenginebtn");
+  if (hackEngineApp) {
+    hackEngineApp.addEventListener("dblclick", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Vérifier le rôle de l'utilisateur
+      const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('auth_token');
+      
+      console.log('Token récupéré:', accessToken ? 'OUI' : 'NON');
+      
+      if (!accessToken) {
+        // Si non connecté, redirection vers coming soon
+        console.log('Pas de token trouvé');
+        window.location.href = "/coming-soon";
+        return;
+      }
+
+      try {
+        // Décoder le token pour récupérer le rôle
+        const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
+        console.log('Token décodé:', tokenPayload);
+        console.log('Rôle détecté:', tokenPayload.role);
+        
+        if (tokenPayload.role === 'admin') {
+          // Admin: redirection vers /build
+          console.log('Admin détecté - Redirection vers /build');
+          window.location.href = "/build";
+        } else {
+          // User : Coming soon
+          console.log('User détecté - Redirection vers coming-soon');
+          window.location.href = "/coming-soon";
+        }
+      } catch (error) {
+        console.error(' Erreur lors de la vérification du rôle:', error);
+        console.error('Token problématique:', accessToken);
+        window.location.href = "/coming-soon";
+      }
+    });
+  }
+
   for (const app of apps) {
     let offsetX = 0;
     let offsetY = 0;

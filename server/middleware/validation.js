@@ -304,20 +304,7 @@ const sanitizeInput = (req, res, next) => {
  * @param {Array} errors - Liste des erreurs de validation
  */
 const sendValidationError = (res, errors) => {
-  const response = {
-    success: false,
-    message: "❌ Erreur de validation des données",
-    errors: errors.map((error) => ({
-      code: error.code,
-      message: error.message,
-      field: error.field,
-      ...(error.requirements && { requirements: error.requirements }),
-    })),
-    timestamp: new Date().toISOString(),
-    type: "validation_error",
-  };
-
-  return res.status(400).json(response);
+  return res.status(400).send("❌ Erreur de validation des données");
 };
 
 /**
