@@ -1,0 +1,58 @@
+name: CI/CD Hackemon
+
+on:
+  push:
+    branches: [ "main", "feat/docker", "feat/CI-CD", "dev" ]
+  pull_request:
+    branches: [ "main", "feat/docker", "feat/CI-CD", "dev" ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Installation des dépendances
+        run: npm ci
+
+  build-remote:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    steps:
+      - name: Validation du build Docker sur le serveur SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/hackemon/www
+            git pull
+            cd /srv/hackemon
+            docker-compose build
+
+  deploy:
+    needs: build-remote
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    steps:
+      - name: Lancement des conteneurs sur le serveur via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /srv/hackemon
+            docker-compose up -d
