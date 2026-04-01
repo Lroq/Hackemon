@@ -30,29 +30,41 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
-      - name: Validation du build Docker sur le serveur SSH
+      - name: Mise à jour et build sur le serveur
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /home/hackemon/www
-            git pull
-            cd /srv/hackemon
-            docker-compose build
+            sudo chown -R svc_hackemon:svc_hackemon /srv/hackemon
+            sudo -u svc_hackemon bash -c "
+              cd /srv/hackemon &&
+              if [ ! -d .git ]; then
+                git init .
+                git remote add origin https://github.com/${{ github.repository }}.git
+              fi
+              git config --global --add safe.directory /srv/hackemon &&
+              git fetch origin ${{ github.ref_name }} &&
+              git reset --hard origin/${{ github.ref_name }} &&
+              docker compose build site jeu
+            "
 
   deploy:
     needs: build-remote
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
-      - name: Lancement des conteneurs sur le serveur via SSH
+      - name: Lancement des conteneurs via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /srv/hackemon
-            docker-compose up -d
+            sudo chown -R svc_hackemon:svc_hackemon /srv/hackemon
+            sudo -u svc_hackemon bash -c "
+              cd /srv/hackemon &&
+              docker compose down &&
+              docker compose up -d
+            "
