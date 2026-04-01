@@ -1,6 +1,6 @@
 @font-face {
-  font-family: "VT323";
-  src: url("/public/templates/font/VT323.ttf");
+  font-family: 'VT323';
+  src: url('/public/templates/font/VT323.ttf');
 }
 
 :root {
@@ -22,28 +22,28 @@
 html,
 body {
   height: 100%;
-}
-
-body {
-  font-family: "VT323", monospace;
-  color: var(--ink);
-  background: radial-gradient(circle at 20% 20%, #bfe9ff 0%, transparent 45%),
-    radial-gradient(circle at 80% 10%, #ffd7d7 0%, transparent 45%),
-    linear-gradient(180deg, #9edbff 0%, #7fc7ef 60%, #6eb8e0 100%);
-  display: grid;
-  place-items: center;
-  position: relative;
   overflow: hidden;
 }
 
+body {
+  font-family: 'VT323', monospace;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 20% 20%, #bfe9ff 0%, transparent 45%),
+    radial-gradient(circle at 80% 10%, #ffd7d7 0%, transparent 45%),
+    linear-gradient(180deg, #9edbff 0%, #7fc7ef 60%, #6eb8e0 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
 body::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(
-      transparent 0 95%,
-      rgba(0, 0, 0, 0.12) 95% 100%
-    ),
+  background-image:
+    linear-gradient(transparent 0 95%, rgba(0, 0, 0, 0.12) 95% 100%),
     linear-gradient(90deg, transparent 0 95%, rgba(0, 0, 0, 0.12) 95% 100%);
   background-size: 18px 18px;
   opacity: 0.35;
@@ -51,7 +51,7 @@ body::before {
 }
 
 body::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: -20%;
   background: repeating-linear-gradient(
@@ -68,8 +68,11 @@ body::after {
 
 .coming {
   width: min(920px, 92vw);
+  max-height: calc(100% - 20px);
+  padding: 10px 16px;
   display: grid;
-  gap: clamp(16px, 2vw, 28px);
+  grid-template-rows: auto 1fr;
+  gap: clamp(8px, 1.5vw, 16px);
   z-index: 1;
 }
 
@@ -109,12 +112,11 @@ body::after {
   background: linear-gradient(180deg, var(--panel) 0%, var(--panel-dark) 100%);
   border: 4px solid var(--ink);
   box-shadow: 10px 10px 0 var(--ink);
-  padding: clamp(16px, 3vw, 32px);
+  padding: clamp(12px, 2vw, 24px);
   display: grid;
-  gap: 16px;
+  gap: clamp(8px, 1.5vh, 16px);
   position: relative;
 }
-
 
 .card-top {
   display: flex;
@@ -123,13 +125,13 @@ body::after {
 }
 
 .card-icon {
-  width: clamp(40px, 6vw, 80px);
+  width: clamp(32px, 5vw, 60px);
   image-rendering: pixelated;
   filter: drop-shadow(4px 4px 0 var(--shadow));
 }
 
 .card-title h1 {
-  font-size: clamp(28px, 5vw, 56px);
+  font-size: clamp(22px, 4vw, 42px);
 }
 
 .card-title p {
@@ -137,7 +139,7 @@ body::after {
 }
 
 .coming-title {
-  font-size: clamp(34px, 7vw, 86px);
+  font-size: clamp(28px, 5vw, 64px);
   letter-spacing: 4px;
   text-align: center;
   color: var(--accent);
@@ -205,7 +207,6 @@ body::after {
   color: var(--ink);
 }
 
-
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -214,7 +215,6 @@ body::after {
     transform: translateX(-100%);
   }
 }
-
 
 @media (max-width: 640px) {
   .card-top {

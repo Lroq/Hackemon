@@ -39,6 +39,20 @@ class AppManager {
       });
     }
 
+    const terminalButton = document.querySelector('#terminalbtn');
+    if (terminalButton) {
+      const terminalLink = terminalButton.closest('a');
+      if (terminalLink) {
+        terminalLink.addEventListener('click', (e) => {
+          e.preventDefault();
+        });
+      }
+
+      EventUtils.onDoubleClick(terminalButton, () => {
+        this.openTerminal();
+      });
+    }
+
     // Gestionnaire pour les raccourcis clavier
     document.addEventListener('keydown', (e) => {
       this.handleKeyboardShortcuts(e);
@@ -86,6 +100,29 @@ class AppManager {
   }
 
   /**
+   * Ouvre la fenetre Terminal
+   * @returns {Terminal|HTMLElement|null}
+   */
+  openTerminal() {
+    const existingTerminal = window.__hackosTerminalInstance;
+    if (
+      existingTerminal &&
+      existingTerminal.getElement &&
+      existingTerminal.getElement().isConnected
+    ) {
+      existingTerminal.focus();
+      return existingTerminal;
+    }
+
+    if (!window.Terminal) {
+      console.warn('Terminal component not available');
+      return null;
+    }
+
+    return new Terminal();
+  }
+
+  /**
    * Gère les raccourcis clavier
    * @private
    * @param {KeyboardEvent} e - Événement clavier
@@ -107,9 +144,13 @@ class AppManager {
    * Ferme toutes les fenêtres ouvertes
    */
   closeAllWindows() {
-    const windows = document.querySelectorAll('.window.closeable');
-    windows.forEach((window) => {
-      const closeButton = window.querySelector('.app-close');
+    const windows = document.querySelectorAll(
+      '.window.closeable, .terminal-window.closeable',
+    );
+    windows.forEach((windowElement) => {
+      const closeButton = windowElement.querySelector(
+        '.app-close, .terminal-frame__close',
+      );
       if (closeButton) {
         closeButton.click();
       }
@@ -178,3 +219,4 @@ class AppManager {
 
 // Instance globale du gestionnaire d'application
 window.AppManager = new AppManager();
+window.openTerminal = () => window.AppManager.openTerminal();

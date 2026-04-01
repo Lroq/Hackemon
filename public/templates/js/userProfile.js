@@ -1,10 +1,29 @@
 // Récupère le profil de l'utilisateur connecté et met à jour l'UI
 (async function () {
+  function notifyProfileChange(user = null) {
+    window.dispatchEvent(
+      new CustomEvent('hackos:user-profile-changed', {
+        detail: { user },
+      }),
+    );
+  }
+
+  function getVisitorLabel() {
+    if (window.I18n && typeof window.I18n.t === 'function') {
+      return window.I18n.t('profile.visitor', null, 'Visiteur');
+    }
+    return 'Visiteur';
+  }
+
   function setDefaultProfile() {
     const avatar = document.getElementById('userAvatar');
     const pseudo = document.getElementById('userPseudo');
     if (avatar) avatar.src = '/public/assets/game_px.png';
-    if (pseudo) pseudo.textContent = 'Visiteur';
+    if (pseudo) {
+      pseudo.setAttribute('data-i18n', 'profile.visitor');
+      pseudo.textContent = getVisitorLabel();
+    }
+    notifyProfileChange(null);
   }
 
   async function fetchProfile() {
@@ -26,7 +45,12 @@
       const user = await fetchProfile();
       if (user) {
         this.set(user);
-        window.globalMenuInstance.render();
+        if (
+          window.globalMenuInstance &&
+          typeof window.globalMenuInstance.render === 'function'
+        ) {
+          window.globalMenuInstance.render();
+        }
         return user;
       }
       setDefaultProfile();
@@ -35,7 +59,15 @@
     set(user) {
       const avatar = document.getElementById('userAvatar');
       const pseudo = document.getElementById('userPseudo');
-      if (pseudo) pseudo.textContent = user.username || 'Visiteur';
+      if (pseudo) {
+        if (user.username) {
+          pseudo.removeAttribute('data-i18n');
+          pseudo.textContent = user.username;
+        } else {
+          pseudo.setAttribute('data-i18n', 'profile.visitor');
+          pseudo.textContent = getVisitorLabel();
+        }
+      }
       if (avatar) {
         // Si user.avatar existe, on l'utilise, sinon image par défaut
         //avatar.src = user.avatar || '/public/assets/game_px.png';
@@ -47,12 +79,19 @@
           avatar.src = '/public/assets/game_px.png';
         }
       }
+
+      notifyProfileChange(user);
     },
   };
 
   // Fonction d'initialisation
   function init() {
     window.UserProfile.refresh();
+    window.addEventListener('i18n:changed', () => {
+      if (!window.ApiService || !window.ApiService.isAuthenticated()) {
+        setDefaultProfile();
+      }
+    });
   }
 
   // Attendre que le DOM soit prêt puis initialiser
