@@ -56,41 +56,15 @@ router.get("/coming-soon", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/templates/coming-soon.html"));
 });
 
-// Middleware pour capturer toutes les requêtes /build
-const buildProxyHandler = async (req, res, next) => {
-  try {
-    const targetUrl = 'http://localhost:9000${req.originalUrl}' ;
-
-    console.log('[BUILD PROXY] ${req.method} ${req.originalUrl} → ${targetUrl}');
-
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      headers: {
-        ...req.headers,
-        host: "localhost:9000",
-      },
-      data: req.body,
-      validateStatus: () => true, // Accepte tous les codes de statut
-    });
-// Copier les headers de la réponse
-    Object.keys(response.headers).forEach((key) => {
-      if (!["content-encoding", "transfer-encoding"].includes(key.toLowerCase())) {
-        res.setHeader(key, response.headers[key]);
-      }
-    });
-    res.status(response.status).send(response.data);
-  } catch (error) {
-    console.error("Erreur lors du proxy vers /build:", error.message);
-    res.status(503).json({
-      error: "Service indisponible",
-      code: "SERVICE_UNAVAILABLE",
-    });
+router.get(
+  "/build",
+  requireAuth,
+  requireAdmin,
+  (req, res) => {
+    res.sendFile(
+      path.join(__dirname, "../hackemon-jeu/build/index.html")
+    );
   }
-};
-
-// Route protégée pour /build - proxy vers le service sur le port 9000 (admin uniquement)
-// // Matcher: /build, /build/, /build/anything, etc.
-router.all(/^\/build(\/.*)?$/, requireAuth, requireAdmin, buildProxyHandler);
+);
 
 module.exports = router;

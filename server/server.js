@@ -83,12 +83,8 @@ class Server {
     this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
     // Middleware pour exclure /build des fichiers statiques (sera géré par les routes protégées)
-    this.app.use((req, res, next) => {
-      if (req.path.startsWith('/build')) {
-        return next(); // Skip le middleware statique pour /build
-      }
-      express.static(path.join(__dirname, "../"))(req, res, next);
-    });
+    this.app.use(express.static(path.join(__dirname, "../")));
+
     this.app.use("/public", express.static(path.join(__dirname, "../public")));
 
     // Headers de sécurité basiques
@@ -148,41 +144,6 @@ class Server {
         uptime: process.uptime(),
       });
     });
-
-    const proxyBuildRequest = async (req, res) => {
-      const targetUrl = `http://localhost:9000${req.originalUrl}`;
-
-      try {
-        const response = await fetch(targetUrl, {
-          method: req.method,
-          headers: {
-            ...req.headers,
-            host: "localhost:9000",
-          },
-          body:
-            req.method === "GET" || req.method === "HEAD"
-              ? undefined
-              : JSON.stringify(req.body),
-        });
-
-        response.headers.forEach((value, key) => {
-          if (!["content-encoding", "transfer-encoding"].includes(key.toLowerCase())) {
-            res.setHeader(key, value);
-          }
-        });
-
-        const bodyBuffer = Buffer.from(await response.arrayBuffer());
-        res.status(response.status).send(bodyBuffer);
-      } catch (error) {
-        console.error("Erreur lors du proxy de secours vers /build:", error.message);
-        res.status(503).json({
-          error: "Service indisponible",
-          code: "SERVICE_UNAVAILABLE",
-        });
-      }
-    };
-
-    this.app.all(/^\/build(\/.*)?$/, requireAuth, requireAdmin, proxyBuildRequest);
 
     // Routes d'authentification simplifiées (sans base de données)
     const createToken = (userPayload) =>
