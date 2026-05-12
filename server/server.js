@@ -81,16 +81,8 @@ class Server {
     // Middleware pour parser les requêtes URL-encoded
     this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-    // Middleware pour exclure /build des fichiers statiques (sera servi via les routes protégées)
-    const staticWithBuildExclusion = express.static(path.join(__dirname, "../"));
-    this.app.use((req, res, next) => {
-      if (req.path.startsWith('/build')) {
-        return next(); // Skip le middleware statique pour /build
-      }
-      staticWithBuildExclusion(req, res, next);
-    });
-
     // Middleware pour les fichiers statiques
+    this.app.use(express.static(path.join(__dirname, "../")));
     this.app.use("/public", express.static(path.join(__dirname, "../public")));
 
     // Headers de sécurité basiques

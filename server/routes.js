@@ -3,6 +3,7 @@
  */
 const express = require("express");
 const path = require("path");
+const axios = require("axios");
 
 // Controllers
 const AuthController = require("./controllers/AuthController");
@@ -60,7 +61,38 @@ router.use(
   "/build",
   requireAuth,
   requireAdmin,
-  express.static(path.join(__dirname, "../build"))
+
+async (req, res, next) => {
+    try {
+      const targetUrl = 'http://localhost:9000${req.originalUrl}' ;
+
+      const response = await axios({
+        method: req.method,
+        url: targetUrl,
+        headers: {
+          ...req.headers,
+          host: "localhost:9000",
+        },
+        data: req.body,
+        validateStatus: () => true, // Accepte tous les codes de statut
+      });
+
+      // Copier les headers de la réponse
+      Object.keys(response.headers).forEach((key) => {
+        if (!["content-encoding", "transfer-encoding"].includes(key.toLowerCase())) {
+          res.setHeader(key, response.headers[key]);
+        }
+      });
+
+      res.status(response.status).send(response.data);
+    } catch (error) {
+      console.error("Erreur lors du proxy vers /build:", error.message);
+      res.status(503).json({
+        error: "Service indisponible",
+        code: "SERVICE_UNAVAILABLE",
+      });
+    }
+  }
 );
 
 module.exports = router;
