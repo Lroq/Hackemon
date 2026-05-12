@@ -59,41 +59,30 @@ router.use(
   requireAdmin,
   async (req, res) => {
     try {
-      const targetUrl = `http://localhost:9000${req.originalUrl}`;
-
-      console.log("PROXY BUILD →", targetUrl);
+      const targetUrl = `http://hackemon-jeu:9000${req.originalUrl}`;
 
       const response = await axios({
         method: req.method,
         url: targetUrl,
         headers: {
           ...req.headers,
-          host: "localhost:9000",
+          host: "hackemon-jeu",
         },
         responseType: "stream",
-        validateStatus: () => true,
       });
 
       res.status(response.status);
 
-      Object.entries(response.headers).forEach(([key, value]) => {
-        if (
-          !["content-encoding", "transfer-encoding"].includes(
-            key.toLowerCase()
-          )
-        ) {
-          res.setHeader(key, value);
+      Object.entries(response.headers).forEach(([k, v]) => {
+        if (!["content-encoding", "transfer-encoding"].includes(k.toLowerCase())) {
+          res.setHeader(k, v);
         }
       });
 
       response.data.pipe(res);
-
-    } catch (error) {
-      console.error("Erreur proxy build:", error.message);
-
-      res.status(503).json({
-        error: "Service indisponible",
-      });
+    } catch (err) {
+      console.error("BUILD ERROR:", err.message);
+      res.status(502).json({ error: "Build unreachable" });
     }
   }
 );
