@@ -60,7 +60,42 @@ router.use(
   "/build",
   requireAuth,
   requireAdmin,
-  express.static(path.join(__dirname, "../build"))
+  async (req, res) => {
+    try {
+      const targetUrl = `http://localhost:9000${req.originalUrl}`;
+
+      const response = await axios({
+        method: req.method,
+        url: targetUrl,
+        headers: {
+          ...req.headers,
+          host: "localhost:9000",
+        },
+        responseType: "stream",
+        validateStatus: () => true,
+      });
+
+      res.status(response.status);
+
+      Object.entries(response.headers).forEach(([key, value]) => {
+        if (
+          !["content-encoding", "transfer-encoding"].includes(
+            key.toLowerCase()
+          )
+        ) {
+          res.setHeader(key, value);
+        }
+      });
+
+      response.data.pipe(res);
+    } catch (error) {
+      console.error("Erreur proxy build:", error.message);
+
+      res.status(503).json({
+        error: "Service indisponible",
+      });
+    }
+  }
 );
 
 
