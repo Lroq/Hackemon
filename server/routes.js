@@ -58,6 +58,7 @@ router.use(
   requireAuth,
   requireAdmin,
   async (req, res) => {
+    console.log("BUILD PROXY HIT", req.originalUrl);
     try {
       const targetUrl = `http://hackemon-jeu:9000${req.originalUrl}`;
 
