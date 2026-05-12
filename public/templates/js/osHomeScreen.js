@@ -585,7 +585,7 @@ function getAssociatedWindowTitles(appId) {
   return Array.from(titles);
 }
 
-function openBuildPage(event) {
+function openHackEngine(event) {
   event.preventDefault();
   event.stopPropagation();
 
@@ -598,7 +598,9 @@ function openBuildPage(event) {
     return;
   }
 
-  // 👉 navigation simple
+  // Dépose le token en cookie avant la navigation
+  document.cookie = `auth_token=${accessToken}; path=/; SameSite=Strict; Secure`;
+
   window.location.href = '/build';
 }
 
