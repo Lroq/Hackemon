@@ -585,7 +585,7 @@ function getAssociatedWindowTitles(appId) {
   return Array.from(titles);
 }
 
-async function openHackEngine(event) {
+function openBuildPage(event) {
   event.preventDefault();
   event.stopPropagation();
 
@@ -598,30 +598,8 @@ async function openHackEngine(event) {
     return;
   }
 
-  try {
-    // Vérifier l'accès via la route serveur sécurisée
-    const response = await fetch('/build', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.redirect) {
-        window.location.href = data.redirect;
-      }
-    } else {
-      // Accès refusé ou token invalide
-      console.error('Accès à /build refusé:', response.status);
-      window.location.href = '/coming-soon';
-    }
-  } catch (error) {
-    console.error('Erreur lors de l\'accès à la page de build:', error);
-    window.location.href = '/coming-soon';
-  }
+  // 👉 navigation simple
+  window.location.href = '/build';
 }
 
 function openSettings(event) {
