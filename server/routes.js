@@ -90,7 +90,7 @@ const buildProxyHandler = async (req, res, next) => {
 };
 
 // Route protégée pour /build - proxy vers le service sur le port 9000 (admin uniquement)
-router.all("/build", requireAuth, requireAdmin, buildProxyHandler);
-router.all("/build/*", requireAuth, requireAdmin, buildProxyHandler);
+// // Matcher: /build, /build/, /build/anything, etc.
+router.all(/^\/build(\/.*)?$/, requireAuth, requireAdmin, buildProxyHandler);
 
 module.exports = router;
