@@ -71,9 +71,8 @@ const requireAdmin = async (req, res, next) => {
       });
     }
 
-    const adminUsers = [1]; // Premier utilisateur créé est admin
-
-    if (!adminUsers.includes(req.user.userId)) {
+    // Vérifier le rôle dans le token
+    if (req.user.role !== 'admin') {
       return res.status(403).json({
         error: 'Permissions administrateur requises.',
         code: 'FORBIDDEN',
