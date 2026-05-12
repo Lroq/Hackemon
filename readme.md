@@ -1,186 +1,320 @@
-# HackOS - Architecture Refactorisée
+# Hackemon
 
-## 📁 Structure du Projet
+> Interface web inspirée d'un OS rétro pixel-art, avec système d'authentification complet et intégration d'un moteur de jeu externe.
 
-### Côté Client (`/public/templates/js/`)
+---
+
+## 📖 Table des matières
+
+- [Présentation](#présentation)
+- [Architecture du projet](#architecture-du-projet)
+- [Stack technique](#stack-technique)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Démarrage](#démarrage)
+- [Déploiement Docker](#déploiement-docker)
+- [API Endpoints](#api-endpoints)
+- [Sécurité](#sécurité)
+- [CI/CD](#cicd)
+- [Liens](#liens)
+
+---
+
+## Présentation
+
+Hackemon est une application web qui simule un système d'exploitation rétro dans le navigateur. L'interface, en pixel-art, propose un bureau avec des icônes cliquables ouvrant des fenêtres déplaçables (drag & drop). Elle intègre :
+
+- Un système complet d'authentification (inscription, connexion, JWT, refresh token)
+- Un terminal interactif
+- Un accès à un moteur de jeu externe ([Hackengine](https://github.com/Lroq/Hackengine))
+- Des liens vers les réseaux sociaux du projet (blog, Discord, Instagram, LinkedIn)
+- Un système d'internationalisation (i18n) côté client
+- Une corbeille, un gestionnaire de paramètres et un panneau de profil utilisateur
+
+---
+
+## Architecture du projet
 
 ```
-js/
-├── app.js                    # Point d'entrée principal
-├── main.js                   # ANCIEN fichier (peut être supprimé)
-├── utils/                    # Utilitaires réutilisables
-│   ├── HTMLBuilder.js        # Construction d'éléments HTML
-│   ├── EventUtils.js         # Gestion des événements
-│   └── ApiService.js         # Communication avec l'API
-├── components/               # Composants d'interface
-│   ├── Window.js             # Classe de base des fenêtres
-│   ├── Menu.js               # Menu principal
-│   ├── Login.js              # Fenêtre de connexion
-│   ├── Register.js           # Fenêtre d'inscription
-│   └── LoadingBar.js         # Barre de progression
-└── modules/                  # Modules principaux
-    └── AppManager.js         # Gestionnaire principal de l'app
+Hackemon/
+├── server/                          # Backend Node.js/Express
+│   ├── server.js                    # Point d'entrée du serveur
+│   ├── routes.js                    # Définition des routes
+│   ├── log.js                       # Utilitaire de logging
+│   ├── readfile.js                  # Lecture du fichier .env
+│   ├── config/
+│   │   ├── database.js              # Connexion MongoDB (Mongoose)
+│   │   └── jwt.js                   # Configuration JWT
+│   ├── controllers/
+│   │   └── AuthController.js        # Logique d'authentification
+│   ├── middleware/
+│   │   ├── auth.js                  # Vérification JWT (requireAuth / optionalAuth)
+│   │   ├── jwtAuth.js               # Middleware JWT bas niveau
+│   │   └── validation.js            # Validation & sanitisation des entrées
+│   ├── models/
+│   │   └── User.js                  # Schéma Mongoose utilisateur
+│   ├── js/
+│   │   ├── login.js                 # Logique login
+│   │   ├── register.js              # Logique inscription
+│   │   └── tokenManager.js          # Gestion des access/refresh tokens
+│   ├── utils/
+│   │   └── userTokenManager.js      # Utilitaires tokens utilisateur
+│   └── storage/
+│       └── InMemoryStorage.js       # Stockage mémoire (fallback sans DB)
+│
+├── public/                          # Frontend statique
+│   ├── templates/
+│   │   ├── index.html               # Page principale (bureau OS)
+│   │   ├── coming-soon.html         # Page "bientôt disponible"
+│   │   ├── css/
+│   │   │   ├── menu.css             # Styles du bureau et des fenêtres
+│   │   │   ├── coming-soon.css      # Styles page coming soon
+│   │   │   └── code.css             # Styles code/terminal
+│   │   ├── font/
+│   │   │   └── VT323.ttf            # Police pixel-art rétro
+│   │   └── js/
+│   │       ├── app.js               # Chargement modulaire de l'application
+│   │       ├── main.js              # Bootstrap principal (legacy)
+│   │       ├── i18n.js              # Internationalisation (FR/EN/...)
+│   │       ├── osHomeScreen.js      # Gestion de l'écran d'accueil OS
+│   │       ├── userProfile.js       # Affichage du profil utilisateur
+│   │       ├── utils/
+│   │       │   ├── ApiService.js    # Client HTTP (fetch wrappé, gestion JWT)
+│   │       │   ├── EventUtils.js    # Helpers drag & drop, double-clic
+│   │       │   └── HTMLBuilder.js   # Construction d'éléments DOM
+│   │       ├── components/
+│   │       │   ├── Window.js        # Fenêtre draggable (classe de base)
+│   │       │   ├── Menu.js          # Menu principal
+│   │       │   ├── Login.js         # Fenêtre de connexion
+│   │       │   ├── Register.js      # Fenêtre d'inscription
+│   │       │   ├── Terminal.js      # Terminal interactif
+│   │       │   ├── Corbeille.js     # Corbeille
+│   │       │   ├── LoadingBar.js    # Barre de chargement
+│   │       │   └── Settings.js      # Fenêtre paramètres
+│   │       └── modules/
+│   │           └── AppManager.js    # Gestionnaire central de l'application
+│   ├── assets/                      # Images, icônes, sons
+│   │   ├── logo.png
+│   │   ├── sounds/rickroll.mp3
+│   │   └── ...
+│   └── vault/
+│       └── secrets/README.md        # Placeholder pour secrets (non commité)
+│
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml                # Pipeline GitHub Actions (CI + déploiement SSH)
+│
+├── dockerfile.site                  # Image Docker pour le serveur Node.js
+├── dockerfile.jeu                   # Image Docker pour Hackengine (jeu externe)
+├── docker-compose.yml               # Orchestration des 3 services
+├── package.json
+└── .gitignore
 ```
 
-### Côté Serveur (`/server/`)
+---
 
-```
-server/
-├── server.js                 # Serveur principal (refactorisé)
-├── routes.js                 # Routes principales (refactorisé)
-├── config/                   # Configuration
-│   └── database.js           # Configuration MongoDB
-├── controllers/              # Contrôleurs
-│   └── AuthController.js     # Contrôleur d'authentification
-├── middleware/               # Middlewares
-│   ├── auth.js               # Middleware d'authentification
-│   └── validation.js         # Middleware de validation
-├── models/                   # Modèles existants
-│   └── User.js               # Modèle utilisateur
-└── js/                       # ANCIENS fichiers (peuvent être supprimés)
-    ├── login.js
-    └── register.js
-```
+## Stack technique
 
-## � Installation des Dépendances
+| Couche | Technologie |
+|---|---|
+| Runtime | Node.js ≥ 18 |
+| Framework HTTP | Express 5 |
+| Base de données | MongoDB 6 via Mongoose 8 |
+| Authentification | JWT (jsonwebtoken) + bcrypt |
+| Sessions | express-session + connect-mongo |
+| Frontend | HTML/CSS/JS vanilla (modules ES) |
+| Police | VT323 (pixel-art rétro) |
+| Alertes UI | SweetAlert2 (CDN) |
+| Icônes | Font Awesome 6 (CDN) |
+| Containerisation | Docker + Docker Compose |
+| CI/CD | GitHub Actions + SSH distant |
 
-### Dépendances Essentielles
+---
 
-Pour installer toutes les dépendances nécessaires au projet, exécutez la commande suivante :
+## Prérequis
+
+- **Node.js** ≥ 18
+- **MongoDB** (local ou distant)
+- **Docker & Docker Compose** (pour le déploiement conteneurisé)
+- Un fichier `.env` à la racine du projet (voir [Configuration](#configuration))
+
+---
+
+## Installation
 
 ```bash
-npm install axios bcrypt connect-mongo dotenv express express-session fs jsonwebtoken mongoose node uuid
+# Cloner le dépôt
+git clone https://github.com/<votre-org>/Hackemon.git
+cd Hackemon
+
+# Installer les dépendances
+npm install
 ```
 
-**Description des dépendances principales :**
-- `express` : Framework web pour Node.js
-- `mongoose` : ODM pour MongoDB
-- `bcrypt` : Chiffrement des mots de passe
-- `jsonwebtoken` : Gestion des tokens JWT
-- `express-session` : Gestion des sessions
-- `connect-mongo` : Stockage des sessions MongoDB
-- `axios` : Client HTTP pour les requêtes API
-- `dotenv` : Gestion des variables d'environnement
-- `uuid` : Génération d'identifiants uniques
+---
 
-## �🚀 Améliorations Apportées
+## Configuration
 
-### Côté Client
+Créer un fichier `.env` à la racine du projet :
 
-1. **Modularité** : Code séparé en modules spécialisés
-2. **HTMLBuilder** : Utilitaire centralisé pour créer des éléments HTML
-3. **EventUtils** : Gestion centralisée des événements (double-clic, drag & drop)
-4. **ApiService** : Communication unifiée avec le serveur
-5. **AppManager** : Gestionnaire principal avec gestion de session
-6. **Composants réutilisables** : Window, Menu, Login, Register, LoadingBar
-7. **Chargement dynamique** : Les modules se chargent automatiquement
-8. **Gestion d'erreurs** : Écrans de chargement et d'erreur
+```env
+# Port d'écoute du serveur (défaut : 3000)
+PORT=3000
 
-### Côté Serveur
+# URI MongoDB
+MONGO_URI=mongodb://127.0.0.1:27017/hackemon
 
-1. **Architecture MVC** : Séparation Controllers/Middlewares/Routes
-2. **DatabaseConfig** : Configuration centralisée de MongoDB
-3. **Middlewares** : Authentification, validation, logging
-4. **AuthController** : Logique d'authentification centralisée
-5. **Validation** : Validation robuste des données
-6. **Gestion d'erreurs** : Gestion centralisée des erreurs
-7. **Sessions sécurisées** : Stockage des sessions en MongoDB
-8. **Sécurité** : Headers de sécurité, validation, sanitisation
+# Clé secrète JWT
+JWT_SECRET=votre_secret_jwt_ici
 
-## 🔧 Installation et Démarrage
+# Durée de validité du token JWT (défaut : 1h)
+JWT_EXPIRES_IN=1h
 
-### Prérequis
-- Node.js (version 16 ou supérieure)
-- MongoDB
-- Fichier `.env` avec les credentials MongoDB
+# Environnement (development | production)
+NODE_ENV=development
+```
 
-### Installation complète
+> ⚠️ Ne jamais commiter le fichier `.env`. Il est déjà listé dans `.gitignore`.
+
+---
+
+## Démarrage
+
+### En développement (sans Docker)
+
 ```bash
-# Installation de toutes les dépendances
-npm install axios bcrypt connect-mongo dotenv express express-session fs jsonwebtoken mongoose node uuid
+npm run dev
+# ou
+node server/server.js
 ```
 
-### Démarrage
+L'application est accessible sur [http://localhost:3000](http://localhost:3000).
+
+### Mode dégradé (sans MongoDB)
+
+Si MongoDB n'est pas disponible au démarrage, le serveur continue de fonctionner avec un stockage en mémoire (les données sont perdues à chaque redémarrage). L'inscription et la connexion restent fonctionnelles mais les utilisateurs ne sont pas persistés.
+
+---
+
+## Déploiement Docker
+
+Le projet embarque trois services Docker :
+
+| Service | Conteneur | Port exposé | Description |
+|---|---|---|---|
+| `site` | `hackemon-app` | 3000 | Serveur Node.js/Express |
+| `jeu` | `hackemon-jeu` | 3001 (→ 8080) | Moteur de jeu Hackengine |
+| `mongo` | `hackemon-mongo` | 27017 | Base de données MongoDB |
+
+### Lancer tous les services
+
 ```bash
-# Depuis le répertoire racine du projet
-cd server/
-node server.js
+docker compose up -d
 ```
 
-## 📋 Fonctionnalités
+### Arrêter les services
 
-### Nouvelles Fonctionnalités
+```bash
+docker compose down
+```
 
-1. **Écran de chargement** : Affichage du chargement des modules
-2. **Gestion d'erreurs** : Écrans d'erreur informatifs
-3. **Raccourcis clavier** : Ctrl/Cmd + M pour ouvrir le menu
-4. **Sessions persistantes** : Les sessions survivent aux redémarrages
-5. **API santé** : Endpoint `/health` pour vérifier l'état du serveur
-6. **Logging** : Logging des requêtes et erreurs
-7. **Validation renforcée** : Validation côté client et serveur
+### Rebuild après modification du code
 
-### Fonctionnalités Préservées
+```bash
+docker compose build site
+docker compose up -d
+```
 
-- ✅ Système de fenêtres draggables
-- ✅ Menu principal avec authentification
-- ✅ Connexion/Inscription
-- ✅ Drag & drop des applications
-- ✅ Design rétro préservé
+Les données MongoDB sont persistées dans le volume nommé `mongo-data`.
 
-## 🛠️ API Endpoints
+---
+
+## API Endpoints
 
 ### Authentification
-- `POST /login` - Connexion utilisateur
-- `POST /register` - Inscription utilisateur
-- `POST /logout` - Déconnexion utilisateur
-- `GET /profile` - Profil utilisateur (protégée)
-- `GET /session` - État de la session
+
+| Méthode | Route | Auth requise | Description |
+|---|---|---|---|
+| `POST` | `/register` | Non | Inscription (username, email, password) |
+| `POST` | `/login` | Non | Connexion, retourne access + refresh token |
+| `POST` | `/logout` | Non | Déconnexion (suppression côté client) |
+| `POST` | `/refresh-token` | Non | Renouvellement du JWT via refresh token |
+| `GET` | `/profile` | ✅ JWT | Profil de l'utilisateur connecté |
+| `GET` | `/session` | Optionnelle | Statut de la session courante |
 
 ### Utilitaires
-- `GET /health` - État du serveur
-- `GET /` - Page principale
 
-## 🔒 Sécurité
+| Méthode | Route | Description |
+|---|---|---|
+| `GET` | `/` | Page principale (bureau OS) |
+| `GET` | `/coming-soon` | Page "bientôt disponible" |
+| `GET` | `/health` | Statut du serveur (uptime, timestamp) |
 
-### Améliorations de Sécurité
+### Format des réponses
 
-1. **Headers de sécurité** : X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
-2. **Sessions sécurisées** : HttpOnly, Secure en production
-3. **Validation stricte** : Validation des données côté client et serveur
-4. **Sanitisation** : Nettoyage des données d'entrée
-5. **Gestion d'erreurs** : Pas d'exposition des détails en production
-6. **Rate limiting** : Prêt pour l'ajout de rate limiting
+Toutes les réponses sont en JSON.
 
-## 🧪 Développement
+**Connexion réussie :**
+```json
+{
+  "success": true,
+  "message": "Connexion réussie",
+  "token": "<access_token>",
+  "tokens": { "accessToken": "...", "refreshToken": "..." },
+  "user": { "userId": "...", "username": "...", "email": "..." }
+}
+```
 
-### Ajout de Nouveaux Modules
+**Erreur :**
+```json
+{
+  "error": "Description de l'erreur",
+  "code": "ERROR_CODE"
+}
+```
 
-1. Créer le fichier dans le dossier approprié (`utils/`, `components/`, `modules/`)
-2. L'ajouter à la liste dans `app.js`
-3. Utiliser les patterns existants (classes, exports globaux)
+### Validation des données d'inscription
 
-### Debugging
+- **username** : 3 à 20 caractères, lettres/chiffres/tirets/underscores uniquement
+- **email** : format email standard
+- **password** : minimum 12 caractères, doit contenir majuscules, minuscules, chiffres et caractères spéciaux
 
-- Ouvrir la console développeur
-- Vérifier `window.HackOS` pour les informations de debug
-- Logs détaillés disponibles en mode développement
+---
 
-## 📝 Migration
+## Sécurité
 
-### Pour supprimer l'ancien code :
+- **Hachage des mots de passe** : bcrypt avec 12 rounds de sel
+- **JWT** : access token court (1h) + refresh token pour renouvellement
+- **Headers HTTP** : `X-Content-Type-Options`, `X-Frame-Options: DENY`, `X-XSS-Protection`
+- **Validation serveur** : sanitisation et validation stricte de toutes les entrées via middleware dédié
+- **Mode production** : les détails d'erreur internes ne sont pas exposés au client
+- **Proxy** : `trust proxy` activé pour les déploiements derrière un reverse proxy
 
-1. Supprimer `/public/templates/js/main.js`
-2. Supprimer `/server/js/login.js`
-3. Supprimer `/server/js/register.js`
+---
 
-### Code de migration des sessions existantes :
-Les sessions existantes resteront valides grâce à la nouvelle configuration MongoDB.
+## CI/CD
 
-## 🎯 Prochaines Étapes Suggérées
+Le pipeline GitHub Actions (`.github/workflows/ci-cd.yml`) s'exécute sur les branches `main` et `dev` :
 
-1. **Tests unitaires** : Ajouter des tests pour les composants
-2. **TypeScript** : Migration vers TypeScript pour une meilleure maintenabilité
-3. **Build process** : Ajout de Webpack ou Vite pour la bundling
-4. **PWA** : Transformer en Progressive Web App
-5. **Monitoring** : Ajout de monitoring et métriques
-6. **Documentation API** : Swagger/OpenAPI documentation
+1. **CI** — installation des dépendances (`npm ci`) sur ubuntu-latest avec Node 20
+2. **build-remote** — connexion SSH au serveur de production, `git pull` et `docker compose build`
+3. **deploy** — `docker compose down && docker compose up -d` sur le serveur distant
+
+Les secrets nécessaires à configurer dans GitHub :
+
+| Secret | Description |
+|---|---|
+| `SERVER_HOST` | IP ou hostname du serveur de déploiement |
+| `SERVER_USER` | Utilisateur SSH |
+| `SERVER_SSH_KEY` | Clé privée SSH |
+
+---
+
+## Liens
+
+- Blog : [blog.hackemon.fr](https://blog.hackemon.fr)
+- Instagram : [@hackemon.fr](https://www.instagram.com/hackemon.fr)
+- LinkedIn : [Hackemon](https://www.linkedin.com/company/105809210/)
+- Contact : communication.hackemon@gmail.com
+- Moteur de jeu (Hackengine) : [github.com/Lroq/Hackengine](https://github.com/Lroq/Hackengine)
