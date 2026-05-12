@@ -56,15 +56,13 @@ router.get("/coming-soon", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/templates/coming-soon.html"));
 });
 
-router.get(
+router.use(
   "/build",
   requireAuth,
   requireAdmin,
-  (req, res) => {
-    res.sendFile(
-      path.join(__dirname, "../hackemon-jeu/build/index.html")
-    );
-  }
+  express.static(path.join(__dirname, "../build"))
 );
+
+
 
 module.exports = router;

@@ -83,7 +83,10 @@ class Server {
     this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
     // Middleware pour exclure /build des fichiers statiques (sera géré par les routes protégées)
-    this.app.use(express.static(path.join(__dirname, "../")));
+    this.app.use(
+      "/public",
+      express.static(path.join(__dirname, "../public"))
+    );
 
     this.app.use("/public", express.static(path.join(__dirname, "../public")));
 
