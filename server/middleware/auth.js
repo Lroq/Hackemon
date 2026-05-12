@@ -2,6 +2,15 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'hackemon_jwt_secret';
 
+const parseCookies = (cookieHeader = '') => {
+  return cookieHeader.split(';').reduce((cookies, entry) => {
+    const [rawKey, ...rawValue] = entry.trim().split('=');
+    if (!rawKey) return cookies;
+    cookies[rawKey] = decodeURIComponent(rawValue.join('='));
+    return cookies;
+  }, {});
+};
+
 /**
  * Extrait le token depuis l'en-tête Authorization
  * @param {Object} req - Requête Express
@@ -12,6 +21,12 @@ const extractToken = (req) => {
   if (authHeader.startsWith('Bearer ')) {
     return authHeader.slice(7);
   }
+
+  const cookies = parseCookies(req.headers.cookie || '');
+  if (cookies.auth_token) {
+    return cookies.auth_token;
+  }
+
   return null;
 };
 
@@ -22,7 +37,7 @@ const requireAuth = (req, res, next) => {
   const token = extractToken(req);
   if (!token) {
     return res.status(401).json({
-      error: "Accès non autorisé. Veuillez vous connecter en tant qu'admin.",
+      error: "Accès non autorisé. Veuillez vous connecter en tant qu'administrateur.",
       code: 'UNAUTHORIZED',
     });
   }
@@ -35,7 +50,7 @@ const requireAuth = (req, res, next) => {
   } catch (error) {
     console.error('Erreur de vérification JWT:', error.message);
     res.status(401).json({
-      error: 'Token invalide ou expiré.',
+      error: "Token invalide ou expiré.",
       code: 'INVALID_TOKEN',
     });
   }
@@ -66,16 +81,19 @@ const requireAdmin = async (req, res, next) => {
   try {
     if (!req.user) {
       return res.status(401).json({
-        error: 'Accès non autorisé.',
-        code: 'UNAUTHORIZED',
+        error: "Accès non autorisé. Veuillez vous connecter en tant qu'administrateur.",
+        code: "UNAUTHORIZED",
       });
     }
 
-    // Vérifier le rôle dans le token
-    if (req.user.role !== 'admin') {
+    const isAdminByRole = req.user.role === 'admin';
+    const adminUsers = [1, '1']; // Compatibilité avec les anciens comptes
+    const isAdminByLegacyId = adminUsers.includes(req.user.userId);
+
+    if (!isAdminByRole && !isAdminByLegacyId) {
       return res.status(403).json({
-        error: 'Permissions administrateur requises.',
-        code: 'FORBIDDEN',
+        error: "Permissions administrateur requises.",
+        code: "FORBIDDEN",
       });
     }
 
@@ -83,8 +101,8 @@ const requireAdmin = async (req, res, next) => {
   } catch (error) {
     console.error('Erreur dans requireAdmin:', error);
     res.status(500).json({
-      error: 'Erreur serveur lors de la vérification des permissions.',
-      code: 'SERVER_ERROR',
+      error: "Erreur serveur lors de la vérification des permissions.",
+      code: "SERVER_ERROR",
     });
   }
 };

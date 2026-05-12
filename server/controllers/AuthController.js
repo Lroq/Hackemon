@@ -13,6 +13,31 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 const users = new Map();
 let userIdCounter = 1;
 
+const AUTH_COOKIE_NAME = 'auth_token';
+const REFRESH_COOKIE_NAME = 'refresh_token';
+
+const applyAuthCookies = (res, token, refreshToken) => {
+  if (token) {
+    res.cookie(AUTH_COOKIE_NAME, token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 1000,
+    });
+  }
+
+  if (refreshToken) {
+    res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
+};
+
 // Synchroniser le stockage avec le module de login
 if (typeof setUsersStorage === 'function') setUsersStorage(users);
 
@@ -29,6 +54,10 @@ class AuthController {
           result.token ||
           (result.tokens &&
             (result.tokens.accessToken || result.tokens.token)) ||
+          null;
+        const refreshToken =
+          result.refreshToken ||
+          (result.tokens && result.tokens.refreshToken) ||
           null;
         try {
           console.log(
@@ -47,6 +76,7 @@ class AuthController {
         } catch (e) {
           console.warn('Erreur lors du log du token:', e && e.message);
         }
+        applyAuthCookies(res, tokenField, refreshToken);
         return res.json({
           success: true,
           message: result.message,
@@ -105,6 +135,11 @@ class AuthController {
             (result.tokens &&
               (result.tokens.accessToken || result.tokens.token)) ||
             null;
+          const refreshToken =
+            result.refreshToken ||
+            (result.tokens && result.tokens.refreshToken) ||
+            null;
+          applyAuthCookies(res, tokenField, refreshToken);
           return res.status(201).json({
             success: true,
             message: result.message,
@@ -166,6 +201,7 @@ class AuthController {
       const payload = { userId: id, username, email };
       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
       console.log("✅ Après users.set et jwt.sign");
+      applyAuthCookies(res, token);
 
       // 🔹 Retour JSON
       return res.status(201).json({
@@ -192,6 +228,8 @@ class AuthController {
             console.error('Erreur lors de la destruction de la session:', err);
         });
       }
+      res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+      res.clearCookie(REFRESH_COOKIE_NAME, { path: '/' });
       return res.json({
         success: true,
         message: 'Déconnexion réussie. Supprimez votre token côté client.',
