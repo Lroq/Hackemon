@@ -1,20 +1,16 @@
-/**
- * Routes principales de l'application
- */
 const express = require("express");
 const path = require("path");
 const axios = require("axios");
 
-// Controllers
 const AuthController = require("./controllers/AuthController");
 
-// Middleware
 const {
   requireAuth,
   optionalAuth,
   logAuthAttempt,
   requireAdmin,
 } = require("./middleware/auth");
+
 const {
   validateRegisterData,
   validateLoginData,
@@ -23,26 +19,26 @@ const {
 
 const router = express.Router();
 
-// Middleware global pour les routes d'authentification
+// Middleware auth
 router.use(["/login", "/register"], sanitizeInput);
 router.use(["/login", "/register"], logAuthAttempt);
 
-// Routes d'authentification
+// Auth routes
 router.post("/login", validateLoginData, AuthController.login);
 router.post("/register", validateRegisterData, AuthController.register);
 router.post("/logout", AuthController.logout);
 router.post("/refresh-token", AuthController.refreshToken);
 
-// Routes protégées (nécessitent un JWT valide)
+// Protected routes
 router.get("/profile", requireAuth, AuthController.getProfile);
 router.get("/session", optionalAuth, AuthController.checkSession);
 
-// Route principale
+// Main page
 router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/templates/index.html"));
 });
 
-// Route de santé pour vérifier le serveur
+// Health
 router.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -51,11 +47,12 @@ router.get("/health", (req, res) => {
   });
 });
 
-// Route du coming soon
+// Coming soon
 router.get("/coming-soon", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/templates/coming-soon.html"));
 });
 
+// 🔐 BUILD SECURISÉ
 router.use(
   "/build",
   requireAuth,
@@ -63,6 +60,8 @@ router.use(
   async (req, res) => {
     try {
       const targetUrl = `http://localhost:9000${req.originalUrl}`;
+
+      console.log("PROXY BUILD →", targetUrl);
 
       const response = await axios({
         method: req.method,
@@ -88,6 +87,7 @@ router.use(
       });
 
       response.data.pipe(res);
+
     } catch (error) {
       console.error("Erreur proxy build:", error.message);
 
@@ -97,7 +97,5 @@ router.use(
     }
   }
 );
-
-
 
 module.exports = router;
