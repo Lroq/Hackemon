@@ -599,7 +599,7 @@ function openHackEngine(event) {
   }
 
   // Dépose le token en cookie avant la navigation
-  document.cookie = `auth_token=${accessToken}; path=/; SameSite=Lax; Secure`;
+  document.cookie = `auth_token=${sessionStorage.getItem('auth_token')}; path=/; SameSite=Lax; Secure`;
 
   window.location.href = '/build';
 }
