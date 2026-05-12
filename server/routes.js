@@ -52,7 +52,7 @@ router.get("/coming-soon", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/templates/coming-soon.html"));
 });
 
-// 🔐 BUILD SECURISÉ
+// BUILD SECURISÉ
 router.use(
   "/build",
   requireAuth,
@@ -60,8 +60,10 @@ router.use(
   async (req, res) => {
     console.log("BUILD PROXY HIT", req.originalUrl);
     try {
-      const targetUrl = `http://hackemon-jeu:9000${req.originalUrl}`;
-
+      // Remplace /build par / pour le jeu
+      const gamePath = req.originalUrl.replace(/^\/build/, '') || '/';
+      const targetUrl = `http://hackemon-jeu:9000${gamePath}`;
+      
       const response = await axios({
         method: req.method,
         url: targetUrl,
@@ -73,13 +75,11 @@ router.use(
       });
 
       res.status(response.status);
-
       Object.entries(response.headers).forEach(([k, v]) => {
         if (!["content-encoding", "transfer-encoding"].includes(k.toLowerCase())) {
           res.setHeader(k, v);
         }
       });
-
       response.data.pipe(res);
     } catch (err) {
       console.error("BUILD ERROR:", err.message);
