@@ -59,9 +59,9 @@ router.get("/coming-soon", (req, res) => {
 // Middleware pour capturer toutes les requêtes /build
 const buildProxyHandler = async (req, res, next) => {
   try {
-    const targetUrl = http://localhost:9000${req.originalUrl};
+    const targetUrl = 'http://localhost:9000${req.originalUrl}' ;
 
-    console.log([BUILD PROXY] ${req.method} ${req.originalUrl} → ${targetUrl});
+    console.log('[BUILD PROXY] ${req.method} ${req.originalUrl} → ${targetUrl}');
 
     const response = await axios({
       method: req.method,
