@@ -22,7 +22,7 @@ const requireAuth = (req, res, next) => {
   const token = extractToken(req);
   if (!token) {
     return res.status(401).json({
-      error: 'Accès non autorisé. Veuillez vous connecter.',
+      error: "Accès non autorisé. Veuillez vous connecter en tant qu'admin.",
       code: 'UNAUTHORIZED',
     });
   }

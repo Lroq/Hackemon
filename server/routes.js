@@ -55,14 +55,12 @@ router.get("/coming-soon", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/templates/coming-soon.html"));
 });
 
-// Route protégée pour la redirection /build (admin seulement)
-router.get("/build", requireAuth, requireAdmin, (req, res) => {
-  // Redirection vers le site de build (URL externe)
-  res.json({
-    success: true,
-    redirect: "https://hackemon.fr/build",
-    message: "Accès autorisé à la page de build"
-  });
-});
+// Route protégée pour /build (admin uniquement)
+router.use(
+  "/build",
+  requireAuth,
+  requireAdmin,
+  express.static(path.join(__dirname, "../build"))
+);
 
 module.exports = router;
